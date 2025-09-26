@@ -76,6 +76,11 @@
   --sidebar-accent-foreground: oklch(0.21 0.006 285.885);
   --sidebar-border: oklch(0.92 0.004 286.32);
   --sidebar-ring: oklch(0.705 0.015 286.067);
+  --font-roboto: var(--font-roboto);
+}
+
+@theme {
+  --color-notice: #d9b1ff;
 }
 
 .dark {
@@ -119,4 +124,11 @@
   body {
     @apply bg-background text-foreground;
   }
+}
+
+body {
+  font-family: var(--font-roboto), sans-serif;
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
