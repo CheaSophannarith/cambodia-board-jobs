@@ -1,6 +1,6 @@
 import { SidebarProvider } from "@/components/ui/sidebar"
-import { AppSidebar } from "../components/Company/AppSidebar"
-import { Header } from "../components/Company/Header"
+import { AppSidebar } from "../../components/Company/AppSidebar"
+import { Header } from "../../components/Company/Header"
 import type { Metadata } from "next"
 
 export const metadata: Metadata = {
