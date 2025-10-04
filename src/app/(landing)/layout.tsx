@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import Header from "../components/Header";
+import Header from "../components/Landing/Header";
 
 export default function LandingLayout({
   children,

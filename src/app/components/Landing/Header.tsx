@@ -36,14 +36,14 @@ export default function Header() {
         {/* Right: Auth Links */}
         <div className="flex items-center space-x-2 md:space-x-4 flex-shrink-0">
           <Link
-            href="#"
+            href="/login"
             className="font-medium text-gray-700 hover:text-notice transition text-sm md:text-base"
           >
             Sign In
           </Link>
           <div className="h-8 w-px bg-gray-300 hidden sm:block"></div>
           <Link
-            href="#"
+            href="/sign-up"
             className="font-medium text-white bg-notice px-3 md:px-4 py-2 transition text-sm md:text-base whitespace-nowrap"
           >
             Sign Up
