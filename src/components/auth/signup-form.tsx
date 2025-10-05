@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { signup } from "@/app/actions/auth/auth";
 
 interface SignupFormProps {
   userType: "jobseeker" | "company";
@@ -11,11 +12,10 @@ export function SignupForm({ userType }: SignupFormProps) {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    // Add your signup action here
-    console.log("Signup:", { name, email, password, userType });
-  };
+  const handleSubmit = async (formData: FormData) => {
+    formData.append("userType", userType);
+    const message = await signup(formData);
+  }
 
   const handleGoogleSignup = () => {
     // Add Google OAuth signup action here
@@ -85,16 +85,15 @@ export function SignupForm({ userType }: SignupFormProps) {
         </div>
       </div>
 
-      <form onSubmit={handleSubmit} className="space-y-4">
+      <form action={handleSubmit} className="space-y-4">
         <div>
           <label className="block text-sm font-semibold text-gray-700 mb-2">
             Name
           </label>
           <input
             type="text"
-            placeholder="Enter Your Full Name"
-            value={name}
-            onChange={(e) => setName(e.target.value)}
+            name="name"
+            required
             className="w-full px-4 py-3 border border-gray-300 focus:outline-none focus:ring-2 focus:ring-notice"
           />
         </div>
@@ -105,8 +104,8 @@ export function SignupForm({ userType }: SignupFormProps) {
           </label>
           <input
             type="email"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
+            name="email"
+            required
             className="w-full px-4 py-3 border border-gray-300 focus:outline-none focus:ring-2 focus:ring-notice"
           />
         </div>
@@ -117,8 +116,8 @@ export function SignupForm({ userType }: SignupFormProps) {
           </label>
           <input
             type="password"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
+            name="password"
+            required
             className="w-full px-4 py-3 border border-gray-300focus:outline-none focus:ring-2 focus:ring-notice"
           />
         </div>
