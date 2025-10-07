@@ -21,8 +21,8 @@ export async function GET(request: NextRequest) {
       const { data: { user } } = await supabase.auth.getUser()
       const userType = user?.user_metadata?.user_type
 
-      // ✅ Always redirect cleanly to /profile-application with userType query param
-      const redirectUrl = userType == 'jobseeker' ? `/profile-application?userType=${userType}` : `/company-application?userType=${userType}`
+      // Redirect to appropriate page based on userType (no query params needed)
+      const redirectUrl = userType === 'jobseeker' ? '/profile-application' : '/company-application'
         
       return NextResponse.redirect(new URL(redirectUrl, request.url))
     }
