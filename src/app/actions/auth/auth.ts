@@ -7,20 +7,26 @@ import { createClient } from '@/utils/supabase/server'
 // Action functions for authentication
 export async function login(formData: FormData) {
   const supabase = await createClient()
-  console.log(formData);
   // type-casting here for convenience
   // in practice, you should validate your inputs
   const data = {
     email: formData.get('email') as string,
     password: formData.get('password') as string,
   }
-  const { error } = await supabase.auth.signInWithPassword(data)
-
-  console.log(error);
-  
+  const { data:user, error } = await supabase.auth.signInWithPassword(data)
 
   if (error) {
     return { success: false, message: 'Invalid login credentials!' }
+  }
+
+  const profile = await supabase.from('profiles').select('*').eq('id', user.user?.id).single();
+
+  if ((profile.error || !profile.data) && user.user?.user_metadata?.user_type === 'jobseeker') {
+    return redirect('/profile-application');
+  }
+
+  if ((profile.error || !profile.data) && user.user?.user_metadata?.user_type === 'company') {
+    return redirect('/company-application');
   }
 
   revalidatePath('/', 'layout')
@@ -29,14 +35,18 @@ export async function login(formData: FormData) {
 
 // Action function for signing up a new user
 export async function signup(formData: FormData) {
-  const supabase = await createClient()
+  
+  const supabase = await createClient();
 
   // type-casting here for convenience
   // in practice, you should validate your inputs
-  const name = formData.get('name') as string
+  const firstName = formData.get('firstName') as string
+  const lastName = formData.get('lastName') as string
   const email = formData.get('email') as string
   const password = formData.get('password') as string
   const userType = formData.get('userType') as string
+
+  const name  = `${firstName} ${lastName}`;
 
   const { data ,error } = await supabase.auth.signUp({
     email,

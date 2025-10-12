@@ -19,6 +19,10 @@ export function LoginForm({ userType }: LoginFormProps) {
         toast.error(result.message || "Invalid email or password");
       }
     } catch (error) {
+      // Next.js redirect() throws a NEXT_REDIRECT error on success - don't show error toast for that
+      if (error && typeof error === 'object' && 'digest' in error && String(error.digest).startsWith('NEXT_REDIRECT')) {
+        return;
+      }
       toast.error("An error occurred. Please try again.");
     } finally {
       setIsLoading(false);

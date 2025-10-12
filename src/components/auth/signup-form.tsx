@@ -8,14 +8,15 @@ interface SignupFormProps {
 }
 
 export function SignupForm({ userType }: SignupFormProps) {
-  const [name, setName] = useState("");
+  const [firstName, setFirstName] = useState("");
+  const [lastName, setLastName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
 
   const handleSubmit = async (formData: FormData) => {
     formData.append("userType", userType);
     const message = await signup(formData);
-  }
+  };
 
   const handleGoogleSignup = () => {
     // Add Google OAuth signup action here
@@ -57,9 +58,7 @@ export function SignupForm({ userType }: SignupFormProps) {
               d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"
             />
           </svg>
-          <span className="text-lg font-medium text-primary">
-            Google
-          </span>
+          <span className="text-lg font-medium text-primary">Google</span>
         </button>
 
         <button
@@ -68,11 +67,9 @@ export function SignupForm({ userType }: SignupFormProps) {
           className="flex-1 flex items-center justify-center gap-2 border border-notice py-3 hover:bg-gray-50"
         >
           <svg className="w-5 h-5" viewBox="0 0 24 24" fill="#0A66C2">
-            <path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433c-1.144 0-2.063-.926-2.063-2.065 0-1.138.92-2.063 2.063-2.063 1.14 0 2.064.925 2.064 2.063 0 1.139-.925 2.065-2.064 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z"/>
+            <path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433c-1.144 0-2.063-.926-2.063-2.065 0-1.138.92-2.063 2.063-2.063 1.14 0 2.064.925 2.064 2.063 0 1.139-.925 2.065-2.064 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z" />
           </svg>
-          <span className="text-lg font-medium text-primary">
-            LinkedIn
-          </span>
+          <span className="text-lg font-medium text-primary">LinkedIn</span>
         </button>
       </div>
 
@@ -88,11 +85,27 @@ export function SignupForm({ userType }: SignupFormProps) {
       <form action={handleSubmit} className="space-y-4">
         <div>
           <label className="block text-sm font-semibold text-gray-700 mb-2">
-            Name
+            First Name
           </label>
           <input
             type="text"
-            name="name"
+            name="firstName"
+            value={firstName}
+            onChange={(e) => setFirstName(e.target.value)}
+            required
+            className="w-full px-4 py-3 border border-gray-300 focus:outline-none focus:ring-2 focus:ring-notice"
+          />
+        </div>
+
+        <div>
+          <label className="block text-sm font-semibold text-gray-700 mb-2">
+            Last Name
+          </label>
+          <input
+            type="text"
+            name="lastName"
+            value={lastName}
+            onChange={(e) => setLastName(e.target.value)}
             required
             className="w-full px-4 py-3 border border-gray-300 focus:outline-none focus:ring-2 focus:ring-notice"
           />
@@ -105,6 +118,8 @@ export function SignupForm({ userType }: SignupFormProps) {
           <input
             type="email"
             name="email"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
             required
             className="w-full px-4 py-3 border border-gray-300 focus:outline-none focus:ring-2 focus:ring-notice"
           />
@@ -117,6 +132,8 @@ export function SignupForm({ userType }: SignupFormProps) {
           <input
             type="password"
             name="password"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
             required
             className="w-full px-4 py-3 border border-gray-300focus:outline-none focus:ring-2 focus:ring-notice"
           />
@@ -129,17 +146,14 @@ export function SignupForm({ userType }: SignupFormProps) {
 
       <p className="text-center text-sm text-gray-600">
         Already have an account?{" "}
-        <a
-          href="/login"
-          className="text-notice font-semibold hover:underline"
-        >
+        <a href="/login" className="text-notice font-semibold hover:underline">
           Login
         </a>
       </p>
 
       <p className="text-center text-xs text-gray-500">
-        By clicking 'Continue', you acknowledge that you have read and
-        accept the{" "}
+        By clicking 'Continue', you acknowledge that you have read and accept
+        the{" "}
         <a href="#" className="text-notice hover:underline">
           Terms of Service
         </a>{" "}

@@ -1,3 +1,4 @@
+import CompanyApplication from "@/components/Company/profile/CompanyApplication";
 import { createClient } from "@/utils/supabase/server";
 import { redirect } from "next/navigation";
 
@@ -21,14 +22,8 @@ export default async function CompanyApplicationPage() {
   }
 
   return (
-    <div className="flex min-h-screen items-center justify-center">
-      <div className="mx-auto max-w-md">
-        <h1 className="text-4xl font-bold text-notice mt-12">
-          Create your company profile
-        </h1>
-        <p className="text-sm text-gray-600 mt-2">Welcome, {displayName}!</p>
-        <p className="text-sm text-gray-500 mt-1">User Type: {userType}</p>
+      <div>
+        <CompanyApplication userType={userType} displayName={displayName} />
       </div>
-    </div>
   );
 }

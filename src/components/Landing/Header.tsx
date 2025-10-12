@@ -14,11 +14,14 @@ import {
 
 export default function Header() {
   const { user, loading } = useAuth();
+
+  console.log(user);
+
   const router = useRouter();
 
   const handleLogout = async () => {
     await logout();
-    router.push('/');
+    router.push("/");
     router.refresh();
   };
 
@@ -65,11 +68,20 @@ export default function Header() {
                 </button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end" className="w-48">
-                <DropdownMenuItem asChild>
-                  <Link href="/dashboard" className="cursor-pointer">
-                    Dashboard
-                  </Link>
-                </DropdownMenuItem>
+                {user.user_metadata?.user_type === "jobseeker" && (
+                  <DropdownMenuItem asChild>
+                    <Link href="/profile" className="cursor-pointer">
+                      Profile
+                    </Link>
+                  </DropdownMenuItem>
+                )}
+                {user.user_metadata?.user_type === "company" && (
+                  <DropdownMenuItem asChild>
+                    <Link href="/dashboard" className="cursor-pointer">
+                      Dashboard
+                    </Link>
+                  </DropdownMenuItem>
+                )}
                 <DropdownMenuItem
                   onClick={handleLogout}
                   className="cursor-pointer"
