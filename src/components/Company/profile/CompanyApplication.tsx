@@ -295,7 +295,7 @@ export default function CompanyApplication({
         toast.error(response.message || "Failed to create profile");
         setIsLoading(false);
       } else if (response && response.success) {
-        toast.success("Company and Admin user created successfully!");
+        toast.success("Company and Admin user  created successfully!");
         window.location.href = "/";
       }
     } catch (error) {
@@ -322,7 +322,7 @@ export default function CompanyApplication({
           {/* Basic Information Section */}
           <div className="bg-white p-6 border border-gray-200">
             <h2 className="text-xl font-bold text-gray-800 mb-6">
-              Basic Information
+              Basic Admin Information
             </h2>
 
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">

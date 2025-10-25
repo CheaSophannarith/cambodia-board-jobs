@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import JobForm from "@/components/Company/job/JobForm";
 
 export const metadata: Metadata = {
   title: "Company Profile - Cambodia Board Jobs",
@@ -8,7 +9,7 @@ export const metadata: Metadata = {
 export default function CompanyProfile() {
   return (
     <div className="flex justify-center items-center min-h-screen">
-      Company Profile
+     mmm
     </div>
   );
 }

@@ -2,6 +2,7 @@ import { SidebarTrigger } from "@/components/ui/sidebar";
 import Image from "next/image";
 import { Bell } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import Link from "next/link";
 
 export function Header() {
   return (
@@ -25,9 +26,11 @@ export function Header() {
         </div>
         <div className="flex items-center gap-4 ml-auto">
           <Bell size={25} className="ml-auto text-notice" />
-          <Button className="text-white bg-notice py-4 px-3 rounded-none">
-            + Post a job
-          </Button>
+          <Link href="/create-job">
+            <Button className="text-white bg-notice py-4 px-3 rounded-none hover:bg-notice/80">
+              + Post a job
+            </Button>
+          </Link>
         </div>
       </div>
     </header>

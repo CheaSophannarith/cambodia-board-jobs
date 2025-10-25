@@ -19,7 +19,6 @@ export async function createCompanyProfile(formData: FormData) {
     const headquarters = formData.get('headquarters') as string;
     const foundedYear = formData.get('foundingYear') as string;
     const companySize = formData.get('companySize') as string;
-    const isSuperAdmin = 1;
 
     const { data: { user } } = await supabase.auth.getUser();
 
@@ -72,25 +71,26 @@ export async function createCompanyProfile(formData: FormData) {
         logoUrl = filePath;
     }
 
-    const { error } = await supabase.from('profiles').upsert({
+    const { data: profileData, error } = await supabase.from('profiles').upsert({
         user_id: user.id,
         location,
         role,
         full_name: fullName,
         phone,
         avatar_url: avatarUrl,
-        is_super_admin: isSuperAdmin,
     }, {
         onConflict: 'user_id'
-    });
+    })
+    .select()
+    .single();
 
-    if (error) {
+    if (error || !profileData) {
         console.error('Error creating profile:', error);
         return { success: false, message: 'Error creating profile' };
     }
 
-    const { error: companyError } = await supabase.from('companies').upsert({
-        profile_id: user.id,
+    // Create company (no profile_id - using company_members for relationships)
+    const { data: companyData, error: companyError } = await supabase.from('companies').insert({
         company_name: companyName,
         logo_url: logoUrl,
         industry,
@@ -99,12 +99,38 @@ export async function createCompanyProfile(formData: FormData) {
         headquarters,
         founding_year: foundedYear ? parseInt(foundedYear) : null,
         company_size: companySize,
-    });
+    })
+    .select()
+    .single();
 
-    if (companyError) {
+    if (companyError || !companyData) {
         console.error('Error creating company:', companyError);
         return { success: false, message: 'Error creating company' };
     }
+
+    // CRITICAL: Add the user as admin to company_members table
+    // Without this, the user won't be able to create jobs or manage the company
+    const { error: memberError } = await supabase.from('company_members').insert({
+        company_id: companyData.id,
+        profile_id: profileData.id,  // Use profile.id, not user.id (auth user id)
+        role: 'admin',
+        is_active: true,
+    });
+
+    if (memberError) {
+        // This is critical - if we can't add to company_members, rollback company creation
+        console.error('CRITICAL ERROR: Failed to add user to company_members:', memberError);
+
+        // Delete the company we just created since the user can't be added as admin
+        await supabase.from('companies').delete().eq('id', companyData.id);
+
+        return {
+            success: false,
+            message: 'Failed to set up company membership. Please ensure the company_members table exists. Contact support if this persists.'
+        };
+    }
+
+    console.log('✅ Successfully created company and added user as admin');
 
     revalidatePath('/');
     return { success: true };

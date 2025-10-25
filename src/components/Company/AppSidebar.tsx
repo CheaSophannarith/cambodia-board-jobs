@@ -30,7 +30,12 @@ const items = [
     href: "/company-profile",
     icon: Building2,
   },
-  { title: "Job Lists", href: "/company/job-lists", icon: TableProperties },
+  {
+    title: "Company Users",
+    href: "/company/company-users",
+    icon: User,
+  },
+  { title: "Job Lists", href: "/job-list", icon: TableProperties },
   {
     title: "All Applications",
     href: "/company/all-application",
