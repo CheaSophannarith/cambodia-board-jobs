@@ -34,16 +34,35 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const fetchCompanyData = async (userId: string) => {
     try {
-      // Get profile for this user
+      // Optimized: Use a single JOIN query instead of 2 sequential queries
       const { data: profileData, error: profileError } = await supabase
         .from("profiles")
-        .select("id")
+        .select(`
+          id,
+          company_members!inner(
+            company_id,
+            role,
+            is_active
+          )
+        `)
         .eq("user_id", userId)
+        .eq("company_members.is_active", true)
         .single();
 
       if (profileError || !profileData) {
-        console.error("Error fetching profile:", profileError);
-        setProfileId(null);
+        // User might not have a company membership (e.g., jobseeker)
+        // Try to get just the profile without company data
+        const { data: simpleProfile } = await supabase
+          .from("profiles")
+          .select("id")
+          .eq("user_id", userId)
+          .single();
+
+        if (simpleProfile) {
+          setProfileId(simpleProfile.id);
+        } else {
+          setProfileId(null);
+        }
         setCompanyId(null);
         setRole(null);
         return;
@@ -51,23 +70,16 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
       setProfileId(profileData.id);
 
-      // Get company membership through company_members
-      const { data: memberData, error: memberError } = await supabase
-        .from("company_members")
-        .select("company_id, role, is_active")
-        .eq("profile_id", profileData.id)
-        .eq("is_active", true)
-        .single();
+      // Type assertion for company_members array
+      const memberData = (profileData.company_members as any)?.[0];
 
-      if (memberError || !memberData) {
-        console.error("Error fetching company membership:", memberError);
+      if (memberData) {
+        setCompanyId(memberData.company_id);
+        setRole(memberData.role as "admin" | "recruiter" | "employee");
+      } else {
         setCompanyId(null);
         setRole(null);
-        return;
       }
-
-      setCompanyId(memberData.company_id);
-      setRole(memberData.role as "admin" | "recruiter" | "employee");
     } catch (error) {
       console.error("Error in fetchCompanyData:", error);
       setProfileId(null);
@@ -83,42 +95,60 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   };
 
   useEffect(() => {
+    let isMounted = true;
+
     // Get initial session
     const getUser = async () => {
       const {
         data: { user },
       } = await supabase.auth.getUser();
+
+      if (!isMounted) return;
+
       setUser(user);
 
       if (user) {
         await fetchCompanyData(user.id);
       }
 
-      setLoading(false);
+      if (isMounted) {
+        setLoading(false);
+      }
     };
 
     getUser();
 
-    // Listen for auth changes
+    // Listen for auth changes - optimized to prevent duplicate fetches
     const {
       data: { subscription },
-    } = supabase.auth.onAuthStateChange(async (_event, session) => {
+    } = supabase.auth.onAuthStateChange(async (event, session) => {
+      if (!isMounted) return;
+
       const currentUser = session?.user ?? null;
-      setUser(currentUser);
 
-      if (currentUser) {
-        await fetchCompanyData(currentUser.id);
-      } else {
-        setProfileId(null);
-        setCompanyId(null);
-        setRole(null);
+      // Only fetch data if the user actually changed or on SIGNED_IN event
+      if (event === 'SIGNED_IN' || event === 'SIGNED_OUT' || event === 'TOKEN_REFRESHED') {
+        setUser(currentUser);
+
+        if (currentUser && event !== 'TOKEN_REFRESHED') {
+          await fetchCompanyData(currentUser.id);
+        } else if (!currentUser) {
+          setProfileId(null);
+          setCompanyId(null);
+          setRole(null);
+        }
+
+        if (isMounted) {
+          setLoading(false);
+        }
       }
-
-      setLoading(false);
     });
 
-    return () => subscription.unsubscribe();
-  }, [supabase]);
+    return () => {
+      isMounted = false;
+      subscription.unsubscribe();
+    };
+  }, []);
 
   return (
     <AuthContext.Provider

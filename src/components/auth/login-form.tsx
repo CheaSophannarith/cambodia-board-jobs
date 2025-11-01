@@ -14,6 +14,9 @@ export function LoginForm({ userType }: LoginFormProps) {
   const handleSubmit = async (formData: FormData) => {
     setIsLoading(true);
     try {
+
+      formData.append('userType', userType);
+
       const result = await login(formData);
       if (result && !result.success) {
         toast.error(result.message || "Invalid email or password");

@@ -13,13 +13,16 @@ export async function login(formData: FormData) {
     email: formData.get('email') as string,
     password: formData.get('password') as string,
   }
+
   const { data:user, error } = await supabase.auth.signInWithPassword(data)
 
   if (error) {
     return { success: false, message: 'Invalid login credentials!' }
+  } else if (user.user?.user_metadata?.user_type != formData.get('userType')) {
+    return { success: false, message: 'Your credential does not match our record' }
   }
 
-  const profile = await supabase.from('profiles').select('*').eq('id', user.user?.id).single();
+  const profile = await supabase.from('profiles').select('*').eq('user_id', user.user?.id).single();
 
   if ((profile.error || !profile.data) && user.user?.user_metadata?.user_type === 'jobseeker') {
     return redirect('/profile-application');
@@ -29,7 +32,10 @@ export async function login(formData: FormData) {
     return redirect('/company-application');
   }
 
+  // Revalidate the layout to ensure fresh data on redirect
   revalidatePath('/', 'layout')
+
+  // Redirect to home page - the AuthContext will handle state updates
   redirect('/')
 }
 
