@@ -32,6 +32,20 @@ export async function login(formData: FormData) {
     return redirect('/company-application');
   }
 
+  // For company users, check if they have a company membership
+  if (user.user?.user_metadata?.user_type === 'company' && profile.data) {
+    const { data: companyMember } = await supabase
+      .from('company_members')
+      .select('company_id, role, is_active')
+      .eq('profile_id', profile.data.id)
+      .eq('is_active', true)
+      .single();
+
+    if (!companyMember) {
+      return redirect('/company-application');
+    }
+  }
+
   // Revalidate the layout to ensure fresh data on redirect
   revalidatePath('/', 'layout')
 

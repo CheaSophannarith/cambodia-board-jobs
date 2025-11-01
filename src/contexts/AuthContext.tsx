@@ -1,6 +1,6 @@
 "use client";
 
-import { createContext, useContext, useEffect, useState } from "react";
+import { createContext, useContext, useEffect, useState, useCallback, useMemo } from "react";
 import { createClient } from "@/utils/supabase/client";
 import { User } from "@supabase/supabase-js";
 
@@ -9,7 +9,7 @@ interface AuthContextType {
   loading: boolean;
   profileId: string | null;
   companyId: string | null;
-  role: "admin" | "recruiter" | "employee" | null;
+  role: "admin" | "recruiter" | "employee" | "member" | "viewer" | null;
   refreshCompanyData: () => Promise<void>;
 }
 
@@ -27,42 +27,26 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [loading, setLoading] = useState(true);
   const [profileId, setProfileId] = useState<string | null>(null);
   const [companyId, setCompanyId] = useState<string | null>(null);
-  const [role, setRole] = useState<"admin" | "recruiter" | "employee" | null>(
-    null
-  );
-  const supabase = createClient();
+  const [role, setRole] = useState<
+    "admin" | "recruiter" | "employee" | "member" | "viewer" | null
+  >(null);
 
-  const fetchCompanyData = async (userId: string) => {
+  // Create supabase client once using useMemo to avoid recreation on every render
+  const supabase = useMemo(() => createClient(), []);
+
+  const fetchCompanyData = useCallback(async (userId: string) => {
     try {
-      // Optimized: Use a single JOIN query instead of 2 sequential queries
+      // Get profile first
       const { data: profileData, error: profileError } = await supabase
         .from("profiles")
-        .select(`
-          id,
-          company_members!inner(
-            company_id,
-            role,
-            is_active
-          )
-        `)
+        .select("id")
         .eq("user_id", userId)
-        .eq("company_members.is_active", true)
-        .single();
+        .maybeSingle();
 
-      if (profileError || !profileData) {
-        // User might not have a company membership (e.g., jobseeker)
-        // Try to get just the profile without company data
-        const { data: simpleProfile } = await supabase
-          .from("profiles")
-          .select("id")
-          .eq("user_id", userId)
-          .single();
+      if (profileError) throw profileError;
 
-        if (simpleProfile) {
-          setProfileId(simpleProfile.id);
-        } else {
-          setProfileId(null);
-        }
+      if (!profileData) {
+        setProfileId(null);
         setCompanyId(null);
         setRole(null);
         return;
@@ -70,29 +54,40 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
       setProfileId(profileData.id);
 
-      // Type assertion for company_members array
-      const memberData = (profileData.company_members as any)?.[0];
+      // Get company membership separately
+      const { data: memberData } = await supabase
+        .from("company_members")
+        .select("company_id, role")
+        .eq("profile_id", profileData.id)
+        .eq("is_active", true)
+        .maybeSingle();
 
       if (memberData) {
         setCompanyId(memberData.company_id);
-        setRole(memberData.role as "admin" | "recruiter" | "employee");
+        setRole(
+          memberData.role as
+            | "admin"
+            | "recruiter"
+            | "employee"
+            | "member"
+            | "viewer"
+        );
       } else {
         setCompanyId(null);
         setRole(null);
       }
     } catch (error) {
-      console.error("Error in fetchCompanyData:", error);
       setProfileId(null);
       setCompanyId(null);
       setRole(null);
     }
-  };
+  }, [supabase]);
 
-  const refreshCompanyData = async () => {
+  const refreshCompanyData = useCallback(async () => {
     if (user) {
       await fetchCompanyData(user.id);
     }
-  };
+  }, [user, fetchCompanyData]);
 
   useEffect(() => {
     let isMounted = true;
@@ -127,10 +122,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       const currentUser = session?.user ?? null;
 
       // Only fetch data if the user actually changed or on SIGNED_IN event
-      if (event === 'SIGNED_IN' || event === 'SIGNED_OUT' || event === 'TOKEN_REFRESHED') {
+      if (
+        event === "SIGNED_IN" ||
+        event === "SIGNED_OUT" ||
+        event === "TOKEN_REFRESHED"
+      ) {
         setUser(currentUser);
 
-        if (currentUser && event !== 'TOKEN_REFRESHED') {
+        if (currentUser && event !== "TOKEN_REFRESHED") {
           await fetchCompanyData(currentUser.id);
         } else if (!currentUser) {
           setProfileId(null);
@@ -148,12 +147,16 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       isMounted = false;
       subscription.unsubscribe();
     };
-  }, []);
+  }, [fetchCompanyData, supabase]);
+
+  // Memoize context value to prevent unnecessary re-renders
+  const contextValue = useMemo(
+    () => ({ user, loading, profileId, companyId, role, refreshCompanyData }),
+    [user, loading, profileId, companyId, role, refreshCompanyData]
+  );
 
   return (
-    <AuthContext.Provider
-      value={{ user, loading, profileId, companyId, role, refreshCompanyData }}
-    >
+    <AuthContext.Provider value={contextValue}>
       {children}
     </AuthContext.Provider>
   );

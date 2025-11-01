@@ -26,7 +26,7 @@ interface Job {
 }
 
 export default function JobTable() {
-  const { companyId, loading: authLoading } = useAuth();
+  const { companyId, loading: authLoading, profileId, role, refreshCompanyData } = useAuth();
   const [jobs, setJobs] = useState<Job[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -54,7 +54,7 @@ export default function JobTable() {
 
   if (authLoading || loading) {
     return (
-      <div className="flex justify-center items-center py-8">
+      <div className="flex justify-center items-center min-h-screen">
         <p>Loading jobs...</p>
       </div>
     );
@@ -62,18 +62,30 @@ export default function JobTable() {
 
   if (!companyId) {
     return (
-      <div className="flex justify-center items-center py-8">
+      <div className="flex flex-col justify-center items-center py-8 gap-4">
         <p className="text-red-500">
           You are not associated with any company. Please create a company
           profile first.
         </p>
+        <div className="text-sm text-gray-600">
+          <p>Debug Info:</p>
+          <p>Profile ID: {profileId || "Not found"}</p>
+          <p>Company ID: {companyId || "Not found"}</p>
+          <p>Role: {role || "Not found"}</p>
+        </div>
+        <button
+          onClick={() => refreshCompanyData()}
+          className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
+        >
+          Refresh Company Data
+        </button>
       </div>
     );
   }
 
   if (jobs.length === 0) {
     return (
-      <div className="flex justify-center items-center py-8">
+      <div className="flex justify-center items-center min-h-screen">
         <p className="text-gray-500">
           No jobs found. Create your first job posting!
         </p>
