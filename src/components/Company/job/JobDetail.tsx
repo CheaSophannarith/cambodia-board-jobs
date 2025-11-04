@@ -12,9 +12,14 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { X, Plus } from "lucide-react";
-import { createJob } from "@/app/actions/job/createJob";
 import { createClient } from "@/utils/supabase/client";
 import { useRouter } from "next/navigation";
+import { editJob } from "@/app/actions/job/editJob";
+import { deleteJob } from "@/app/actions/job/deleteJob";
+
+interface JobDetailProps {
+  job: any;
+}
 
 const jobTypes = [
   { value: "full_time", label: "Full Time" },
@@ -39,7 +44,7 @@ const currencies = [
   { value: "KHR", label: "KHR (៛)" },
 ];
 
-// Validation schema for job creation
+// Validation schema for job update
 const jobFormSchema = z.object({
   title: z
     .string()
@@ -47,7 +52,11 @@ const jobFormSchema = z.object({
     .min(5, "Job title must be at least 5 characters")
     .max(200, "Job title must be less than 200 characters"),
   category_id: z.string().min(1, "Please select a category"),
-  description: z.string().optional().nullable(),
+  description: z
+    .string()
+    .min(1, "Job description is required")
+    .min(50, "Description must be at least 50 characters")
+    .max(5000, "Description must be less than 5000 characters"),
   location: z
     .string()
     .min(1, "Location is required")
@@ -96,55 +105,64 @@ interface Category {
   is_active: boolean;
 }
 
-export default function JobForm() {
-  // Form states
-  const [title, setTitle] = useState("");
-  const [categoryId, setCategoryId] = useState("");
+export default function JobDetail({ job }: JobDetailProps) {
+  // Form states - Initialize with job data
+  const [title, setTitle] = useState(job.title || "");
+  const [categoryId, setCategoryId] = useState(
+    job.category_id?.toString() || ""
+  );
   const [categories, setCategories] = useState<Category[]>([]);
-  const [description, setDescription] = useState("");
-  const [location, setLocation] = useState("");
-  const [isRemote, setIsRemote] = useState(false);
-  const [jobType, setJobType] = useState("");
-  const [experienceLevel, setExperienceLevel] = useState("");
-  const [salaryMin, setSalaryMin] = useState("");
-  const [salaryMax, setSalaryMax] = useState("");
-  const [salaryCurrency, setSalaryCurrency] = useState("USD");
-  const [applicationDeadline, setApplicationDeadline] = useState("");
+  const [description, setDescription] = useState(job.description || "");
+  const [location, setLocation] = useState(job.location || "");
+  const [isRemote, setIsRemote] = useState(job.is_remote || false);
+  const [jobType, setJobType] = useState(job.job_type || "");
+  const [experienceLevel, setExperienceLevel] = useState(
+    job.experience_level || ""
+  );
+  const [salaryMin, setSalaryMin] = useState(job.salary_min?.toString() || "");
+  const [salaryMax, setSalaryMax] = useState(job.salary_max?.toString() || "");
+  const [salaryCurrency, setSalaryCurrency] = useState(
+    job.salary_currency || "USD"
+  );
+  const [applicationDeadline, setApplicationDeadline] = useState(
+    job.application_deadline
+      ? new Date(job.application_deadline).toISOString().split("T")[0]
+      : ""
+  );
 
-  // Requirements and Benefits (stored as JSONB arrays)
-  const [requirements, setRequirements] = useState<string[]>([""]);
-  const [benefits, setBenefits] = useState<string[]>([""]);
+  // Requirements and Benefits - Initialize from job data (handle both array and JSON string)
+  const [requirements, setRequirements] = useState<string[]>(() => {
+    if (Array.isArray(job.requirements)) {
+      return job.requirements.length > 0 ? job.requirements : [""];
+    }
+    return [""];
+  });
+  const [benefits, setBenefits] = useState<string[]>(() => {
+    if (Array.isArray(job.benefits)) {
+      return job.benefits.length > 0 ? job.benefits : [""];
+    }
+    return [""];
+  });
 
-  // Tags (optional)
+  // Tags - Initialize from job data
   const [tagInput, setTagInput] = useState("");
-  const [tags, setTags] = useState<string[]>([]);
+  const [tags, setTags] = useState<string[]>(() => {
+    if (Array.isArray(job.tags)) {
+      return job.tags;
+    }
+    return [];
+  });
 
   const [errors, setErrors] = useState<FormErrors>({});
   const [isLoading, setIsLoading] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
   const [loadingCategories, setLoadingCategories] = useState(true);
   const router = useRouter();
 
   // Fetch categories from database
   useEffect(() => {
     const fetchCategories = async () => {
-      // Check if categories are cached in sessionStorage
-      const cachedCategories = sessionStorage.getItem("job_categories");
-      const cacheTimestamp = sessionStorage.getItem("job_categories_timestamp");
-      const cacheExpiry = 5 * 60 * 1000; // 5 minutes
-
-      // Use cached data if available and not expired
-      if (
-        cachedCategories &&
-        cacheTimestamp &&
-        Date.now() - parseInt(cacheTimestamp) < cacheExpiry
-      ) {
-        setCategories(JSON.parse(cachedCategories));
-        setLoadingCategories(false);
-        return;
-      }
-
       setLoadingCategories(true);
-
       try {
         const supabase = createClient();
 
@@ -159,12 +177,6 @@ export default function JobForm() {
           toast.error("Failed to load categories");
         } else {
           setCategories(data || []);
-          // Cache the categories in sessionStorage
-          sessionStorage.setItem("job_categories", JSON.stringify(data || []));
-          sessionStorage.setItem(
-            "job_categories_timestamp",
-            Date.now().toString()
-          );
         }
       } catch (error) {
         console.error("Error fetching categories:", error);
@@ -231,26 +243,6 @@ export default function JobForm() {
     }
   };
 
-  // Reset form to initial state
-  const resetForm = () => {
-    setTitle("");
-    setCategoryId("");
-    setDescription("");
-    setLocation("");
-    setIsRemote(false);
-    setJobType("");
-    setExperienceLevel("");
-    setSalaryMin("");
-    setSalaryMax("");
-    setSalaryCurrency("USD");
-    setApplicationDeadline("");
-    setRequirements([""]);
-    setBenefits([""]);
-    setTags([]);
-    setTagInput("");
-    setErrors({});
-  };
-
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
@@ -262,6 +254,7 @@ export default function JobForm() {
 
     // Prepare data for validation
     const data = {
+      id: job.id,
       title,
       category_id: categoryId,
       description,
@@ -306,6 +299,7 @@ export default function JobForm() {
 
     try {
       const formData = new FormData();
+      formData.append("id", job.id.toString());
       formData.append("title", title);
       formData.append("category_id", categoryId);
       formData.append("description", description);
@@ -322,18 +316,17 @@ export default function JobForm() {
       formData.append("benefits", JSON.stringify(filteredBenefits));
       if (tags.length > 0) formData.append("tags", JSON.stringify(tags));
 
-      const response = await createJob(formData);
+      const response = await editJob(job.id, formData);
 
-      if (response && response.success) {
-        toast.success("Job created successfully!");
-        resetForm(); // Reset form after successful creation
-        // Optionally redirect after a short delay to let user see the success message
+      if (response && !response.success) {
+        toast.error(response.message || "Failed to update job");
+        setIsLoading(false);
+      } else if (response && response.success) {
+        toast.success("Job updated successfully!");
         setTimeout(() => {
           router.push("/job-list");
+          router.refresh();
         }, 1000);
-      } else if (response && !response.success) {
-        toast.error(response.message || "Failed to create job");
-        setIsLoading(false);
       }
     } catch (error) {
       console.error("Submission error:", error);
@@ -342,25 +335,36 @@ export default function JobForm() {
     }
   };
 
+  const handleDelete = async () => {
+    if (!window.confirm("Are you sure you want to delete this job? This action cannot be undone.")) {
+      return;
+    }
+
+    setIsDeleting(true);
+
+    try {
+      const formData = new FormData();
+      formData.append("id", job.id.toString());
+
+      await deleteJob(formData);
+
+      // The deleteJob action will redirect, but just in case:
+      toast.success("Job deleted successfully!");
+    } catch (error) {
+      console.error("Delete error:", error);
+      toast.error("Failed to delete job. Please try again.");
+      setIsDeleting(false);
+    }
+  };
+
   return (
     <div className="min-h-screen">
-      {/* Header */}
-      <div className="">
-        <div className="mx-auto max-w-4xl px-4 pt-8 pb-4">
-          <h1 className="text-4xl font-bold text-center text-notice uppercase">
-            Create New Job Posting
-          </h1>
-        </div>
-      </div>
-
       {/* Main Content */}
-      <div className="mx-auto max-w-4xl w-full px-4 pt-4 pb-8">
+      <div className="mx-auto max-w-7xl w-full px-4 pt-4 pb-8">
         <form onSubmit={handleSubmit} className="space-y-8">
           {/* Basic Job Information */}
           <div className="bg-white p-6 border border-gray-200">
-            <h2 className="text-xl font-bold text-gray-800 mb-6">
-              Basic Information
-            </h2>
+            <h2 className="text-xl font-bold text-gray-800 mb-6">Detail</h2>
 
             <div className="space-y-4">
               <div>
@@ -604,12 +608,12 @@ export default function JobForm() {
                     onValueChange={setSalaryCurrency}
                   >
                     <SelectTrigger className="w-full h-auto px-4 py-3 border border-gray-300 focus:outline-none focus:ring-2 focus:ring-notice rounded-none">
-                      <SelectValue />
+                      <SelectValue placeholder="Select currency" />
                     </SelectTrigger>
                     <SelectContent>
-                      {currencies.map((curr) => (
-                        <SelectItem key={curr.value} value={curr.value}>
-                          {curr.label}
+                      {currencies.map((currency) => (
+                        <SelectItem key={currency.value} value={currency.value}>
+                          {currency.label}
                         </SelectItem>
                       ))}
                     </SelectContent>
@@ -668,13 +672,14 @@ export default function JobForm() {
                     className="flex-1 px-4 py-3 border border-gray-300 focus:outline-none focus:ring-2 focus:ring-notice"
                   />
                   {requirements.length > 1 && (
-                    <button
+                    <Button
                       type="button"
                       onClick={() => removeRequirement(index)}
-                      className="px-3 py-2 border border-red-500 text-red-500 hover:bg-red-500 hover:text-white transition-colors"
+                      variant="outline"
+                      className="px-3 border-gray-300 hover:bg-red-50 hover:border-red-300 rounded-none"
                     >
-                      <X className="w-5 h-5" />
-                    </button>
+                      <X className="w-4 h-4 text-red-500" />
+                    </Button>
                   )}
                 </div>
               ))}
@@ -711,13 +716,14 @@ export default function JobForm() {
                     className="flex-1 px-4 py-3 border border-gray-300 focus:outline-none focus:ring-2 focus:ring-notice"
                   />
                   {benefits.length > 1 && (
-                    <button
+                    <Button
                       type="button"
                       onClick={() => removeBenefit(index)}
-                      className="px-3 py-2 border border-red-500 text-red-500 hover:bg-red-500 hover:text-white transition-colors"
+                      variant="outline"
+                      className="px-3 border-gray-300 hover:bg-red-50 hover:border-red-300 rounded-none"
                     >
-                      <X className="w-5 h-5" />
-                    </button>
+                      <X className="w-4 h-4 text-red-500" />
+                    </Button>
                   )}
                 </div>
               ))}
@@ -755,33 +761,42 @@ export default function JobForm() {
               {tags.length > 0 && (
                 <div className="flex flex-wrap gap-2 mt-3">
                   {tags.map((tag, index) => (
-                    <span
+                    <div
                       key={index}
-                      className="inline-flex items-center gap-1 px-3 py-1 bg-notice/10 text-notice border border-notice"
+                      className="bg-notice/10 border border-notice px-3 py-1 flex items-center gap-2"
                     >
-                      {tag}
+                      <span className="text-sm text-gray-700">{tag}</span>
                       <button
                         type="button"
                         onClick={() => removeTag(index)}
-                        className="hover:text-notice/70"
+                        className="text-red-500 hover:text-red-700"
                       >
-                        <X className="w-4 h-4" />
+                        <X className="w-3 h-3" />
                       </button>
-                    </span>
+                    </div>
                   ))}
                 </div>
               )}
             </div>
           </div>
 
-          {/* Submit Button */}
-          <div className="mt-8">
+          {/* Action Buttons */}
+          <div className="mt-8 flex justify-end gap-4">
+            <Button
+              type="button"
+              onClick={handleDelete}
+              disabled={isDeleting || isLoading}
+              variant="outline"
+              className="border-red-500 text-red-500 hover:bg-red-50 px-6 py-3 rounded-none font-semibold disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              {isDeleting ? "Deleting..." : "Delete Job"}
+            </Button>
             <Button
               type="submit"
-              disabled={isLoading}
-              className="bg-notice text-white px-6 py-6 hover:bg-notice/80 text-lg w-full rounded-none font-semibold mb-6 disabled:opacity-50 disabled:cursor-not-allowed"
+              disabled={isLoading || isDeleting}
+              className="bg-notice text-white px-6 py-3 hover:bg-notice/80 rounded-none font-semibold disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              {isLoading ? "Creating Job..." : "Create Job Posting"}
+              {isLoading ? "Updating..." : "Update Job"}
             </Button>
           </div>
         </form>

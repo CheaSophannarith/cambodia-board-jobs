@@ -26,7 +26,13 @@ interface Job {
 }
 
 export default function JobTable() {
-  const { companyId, loading: authLoading, profileId, role, refreshCompanyData } = useAuth();
+  const {
+    companyId,
+    loading: authLoading,
+    profileId,
+    role,
+    refreshCompanyData,
+  } = useAuth();
   const [jobs, setJobs] = useState<Job[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -138,9 +144,12 @@ export default function JobTable() {
                   : "N/A"}
               </TableCell>
               <TableCell>
-                <button className="text-white bg-blue-500 rounded-xl px-4 py-1 mr-[-4] hover:underline">
+                <a
+                  className="text-white bg-blue-500 rounded-xl px-4 py-1 mr-[-4] hover:underline inline-block"
+                  href={`/job-list/job-detail/${job.id}`}
+                >
                   Detail
-                </button>
+                </a>
               </TableCell>
             </TableRow>
           ))}
