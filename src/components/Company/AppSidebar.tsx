@@ -32,7 +32,7 @@ const items = [
   },
   {
     title: "Company Users",
-    href: "/company/company-users",
+    href: "/company-users",
     icon: User,
   },
   { title: "Job Lists", href: "/job-list", icon: TableProperties },

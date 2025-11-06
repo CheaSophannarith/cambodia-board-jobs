@@ -2,22 +2,18 @@
 
 import { useEffect, useState } from "react";
 import { useAuth } from "@/contexts/AuthContext";
-import { getAllJobs } from "@/app/actions/job/getAllJobs";
+import { getAllUsers } from "@/app/actions/user/getAllUsers";
 import DataTable, { Column } from "@/components/Company/DataTable";
 
-interface Job {
+interface User {
   id: string;
-  title: string;
-  location: string;
-  job_type: string;
-  status: string;
-  created_at: string;
-  application_deadline: string | null;
-  is_remote: boolean;
-  experience_level: string;
+  fullName: string;
+  email: string;
+  role: string;
+  isActive: boolean;
 }
 
-export default function JobListPage() {
+export default function CompanyUsersPage() {
   const {
     companyId,
     loading: authLoading,
@@ -25,101 +21,98 @@ export default function JobListPage() {
     role,
     refreshCompanyData,
   } = useAuth();
-  const [jobs, setJobs] = useState<Job[]>([]);
+
+  const [users, setUsers] = useState<User[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    const fetchJobs = async () => {
+    const fetchUsers = async () => {
       if (!companyId) {
         setLoading(false);
         return;
       }
 
       try {
-        const jobsData = await getAllJobs(companyId);
-        setJobs(jobsData);
-      } catch (error) {
-        console.error("Error fetching jobs:", error);
+        setLoading(true);
+        const usersData = await getAllUsers(Number(companyId));
+
+        // Check if the response is an error object
+        if ("success" in usersData && !usersData.success) {
+          setError(usersData.message || "Failed to fetch users");
+          setUsers([]);
+        } else {
+          setUsers(usersData as User[]);
+          setError(null);
+        }
+      } catch (err) {
+        console.error("Error fetching users:", err);
+        setError("An unexpected error occurred");
+        setUsers([]);
       } finally {
         setLoading(false);
       }
     };
 
-    if (!authLoading) {
-      fetchJobs();
-    }
+    fetchUsers();
   }, [companyId, authLoading]);
 
-  const columns: Column<Job>[] = [
+  if (authLoading || loading) {
+    return (
+      <div className="flex justify-center items-center min-h-screen">
+        <p>Loading users...</p>
+      </div>
+    );
+  }
+
+  if (error) {
+    return <div>Error: {error}</div>;
+  }
+
+  const columns: Column<User>[] = [
     {
-      key: "title",
-      header: "Title",
+      key: "fullName",
+      header: "Full Name",
       className: "font-medium",
     },
     {
-      key: "location",
-      header: "Location",
-      render: (job) => (job.is_remote ? "Remote" : job.location),
+      key: "email",
+      header: "Email",
+      className: "font-medium",
     },
     {
-      key: "job_type",
-      header: "Type",
+      key: "role",
+      header: "Role               ",
       className: "capitalize",
     },
     {
-      key: "experience_level",
-      header: "Experience",
-      className: "capitalize",
-    },
-    {
-      key: "status",
+      key: "isActive",
       header: "Status",
-      render: (job) => (
+      render: (userData) => (
         <span
           className={`px-2 py-1 rounded-full text-xs ${
-            job.status === "active"
+            userData.isActive
               ? "bg-green-100 text-green-800"
               : "bg-gray-100 text-gray-800"
           }`}
         >
-          {job.status}
+          {userData.isActive ? "Active" : "Inactive"}
         </span>
       ),
     },
     {
-      key: "created_at",
-      header: "Posted Date",
-      render: (job) => new Date(job.created_at).toLocaleDateString(),
-    },
-    {
-      key: "application_deadline",
-      header: "Application Deadline",
-      render: (job) =>
-        job.application_deadline
-          ? new Date(job.application_deadline).toLocaleDateString()
-          : "N/A",
-    },
-    {
       key: "actions",
       header: "Actions",
-      render: (job) => (
+      render: (userData) => (
         <a
           className="text-white bg-blue-500 rounded-xl px-4 py-1 mr-[-4] hover:underline inline-block"
-          href={`/job-list/job-detail/${job.id}`}
+          href={`/company-users/user-detail/${userData.id}`}
         >
           Detail
         </a>
       ),
     },
   ];
-
-  if (authLoading || loading) {
-    return (
-      <div className="flex justify-center items-center min-h-screen">
-        <p>Loading jobs...</p>
-      </div>
-    );
-  }
 
   if (!companyId) {
     return (
@@ -146,13 +139,13 @@ export default function JobListPage() {
 
   return (
     <div className="min-h-screen px-4 py-4">
-      <h1 className="text-xl uppercase font-bold">All Jobs</h1>
+      <h1 className="text-xl uppercase font-bold">Users</h1>
       <DataTable
-        data={jobs}
+        data={users}
         columns={columns}
-        getRowKey={(job) => job.id}
+        getRowKey={(user) => user.id}
         loading={loading}
-        emptyMessage="No jobs found. Create your first job posting!"
+        emptyMessage="No Users found. Create your first user"
       />
     </div>
   );

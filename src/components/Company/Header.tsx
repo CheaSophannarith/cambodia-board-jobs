@@ -6,7 +6,7 @@ import Link from "next/link";
 
 export function Header() {
   return (
-    <header className="flex items-center gap-2 px-4 py-5 border-b border-gray-300">
+    <header className="sticky top-0 z-50 bg-white flex items-center gap-2 px-4 py-5 border-b border-gray-300">
       <SidebarTrigger className="mr-4" />
       <div className="flex items-center justify-between w-full">
         <div className="flex items-center gap-2">
