@@ -36,22 +36,6 @@ export default function DataTable<T>({
   className = "",
   getRowKey,
 }: DataTableProps<T>) {
-  if (loading) {
-    return (
-      <div className="flex justify-center items-center py-8">
-        <p>Loading...</p>
-      </div>
-    );
-  }
-
-  if (data.length === 0) {
-    return (
-      <div className="flex justify-center items-center py-8">
-        <p className="text-gray-500">{emptyMessage}</p>
-      </div>
-    );
-  }
-
   return (
     <div className={`mt-6 ${className}`}>
       <Table>
@@ -66,17 +50,31 @@ export default function DataTable<T>({
           </TableRow>
         </TableHeader>
         <TableBody>
-          {data.map((item) => (
-            <TableRow key={getRowKey(item)}>
-              {columns.map((column) => (
-                <TableCell key={column.key} className={column.className}>
-                  {column.render
-                    ? column.render(item)
-                    : (item as any)[column.key]}
-                </TableCell>
-              ))}
+          {loading ? (
+            <TableRow>
+              <TableCell colSpan={columns.length} className="text-center py-8">
+                <p>Loading...</p>
+              </TableCell>
             </TableRow>
-          ))}
+          ) : data.length === 0 ? (
+            <TableRow>
+              <TableCell colSpan={columns.length} className="text-center py-8">
+                <p className="text-gray-500">{emptyMessage}</p>
+              </TableCell>
+            </TableRow>
+          ) : (
+            data.map((item) => (
+              <TableRow key={getRowKey(item)}>
+                {columns.map((column) => (
+                  <TableCell key={column.key} className={column.className}>
+                    {column.render
+                      ? column.render(item)
+                      : (item as any)[column.key]}
+                  </TableCell>
+                ))}
+              </TableRow>
+            ))
+          )}
         </TableBody>
       </Table>
     </div>

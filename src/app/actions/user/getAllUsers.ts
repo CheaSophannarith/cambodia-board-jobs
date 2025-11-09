@@ -2,7 +2,7 @@
 
 import { createClient, createServiceClient } from '@/utils/supabase/server'
 
-export async function getAllUsers(companyId: number) {
+export async function getAllUsers(companyId: number, fullNameFilter?: string) {
 
     const supabase = await createClient();
 
@@ -43,7 +43,7 @@ export async function getAllUsers(companyId: number) {
     }
 
     // Fetch all company members with full_name from profiles, role and is_active from company_members
-    const { data: usersData, error: usersError } = await supabase
+    let query = supabase
         .from('company_members')
         .select(`
             role,
@@ -53,7 +53,16 @@ export async function getAllUsers(companyId: number) {
                 full_name
             )
         `)
-        .eq('company_id', companyId);
+        .eq('company_id', companyId)
+        .eq('role', 'recruiter'); // Only fetch recruiters
+
+    // Apply full name filter if provided
+    if (fullNameFilter && fullNameFilter.trim() !== '') {
+        // Filter by full_name using ilike for case-insensitive search
+        query = query.ilike('profiles.full_name', `%${fullNameFilter}%`);
+    }
+
+    const { data: usersData, error: usersError } = await query;
 
     if (usersError) {
         console.error('Error fetching users:', usersError)
@@ -65,7 +74,7 @@ export async function getAllUsers(companyId: number) {
 
     // Get emails from auth.users for each profile
     const usersWithEmails = await Promise.all(
-        usersData?.map(async (member: any) => {
+        usersData?.filter((member: any) => member.profiles !== null).map(async (member: any) => {
             const profile = member.profiles;
 
             // Fetch user email from auth.users

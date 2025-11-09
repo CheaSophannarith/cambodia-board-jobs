@@ -11,6 +11,14 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { X, Plus } from "lucide-react";
 import { createClient } from "@/utils/supabase/client";
 import { useRouter } from "next/navigation";
@@ -157,6 +165,7 @@ export default function JobDetail({ job }: JobDetailProps) {
   const [isLoading, setIsLoading] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
   const [loadingCategories, setLoadingCategories] = useState(true);
+  const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const router = useRouter();
 
   // Fetch categories from database
@@ -336,20 +345,22 @@ export default function JobDetail({ job }: JobDetailProps) {
   };
 
   const handleDelete = async () => {
-    if (!window.confirm("Are you sure you want to delete this job? This action cannot be undone.")) {
-      return;
-    }
-
     setIsDeleting(true);
+    setShowDeleteDialog(false);
 
     try {
       const formData = new FormData();
       formData.append("id", job.id.toString());
 
-      await deleteJob(formData);
+      const result = await deleteJob(formData);
 
-      // The deleteJob action will redirect, but just in case:
-      toast.success("Job deleted successfully!");
+      if (result && !result.success) {
+        toast.error(result.message || "Failed to delete job");
+        setIsDeleting(false);
+      } else {
+        // The deleteJob action will redirect to /job-list
+        toast.success("Job deleted successfully!");
+      }
     } catch (error) {
       console.error("Delete error:", error);
       toast.error("Failed to delete job. Please try again.");
@@ -784,7 +795,7 @@ export default function JobDetail({ job }: JobDetailProps) {
           <div className="mt-8 flex justify-end gap-4">
             <Button
               type="button"
-              onClick={handleDelete}
+              onClick={() => setShowDeleteDialog(true)}
               disabled={isDeleting || isLoading}
               variant="outline"
               className="border-red-500 text-red-500 hover:bg-red-50 px-6 py-3 rounded-none font-semibold disabled:opacity-50 disabled:cursor-not-allowed"
@@ -801,6 +812,38 @@ export default function JobDetail({ job }: JobDetailProps) {
           </div>
         </form>
       </div>
+
+      {/* Delete Confirmation Dialog */}
+      <Dialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Delete Job</DialogTitle>
+            <DialogDescription>
+              Are you sure you want to delete <strong>&quot;{job.title}&quot;</strong>?
+              This action cannot be undone and will permanently remove this job posting.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => setShowDeleteDialog(false)}
+              disabled={isDeleting}
+              className="rounded-none"
+            >
+              Cancel
+            </Button>
+            <Button
+              type="button"
+              onClick={handleDelete}
+              disabled={isDeleting}
+              className="bg-red-500 text-white hover:bg-red-600 rounded-none"
+            >
+              {isDeleting ? "Deleting..." : "Delete Job"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

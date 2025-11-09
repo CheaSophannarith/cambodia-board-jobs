@@ -128,12 +128,6 @@ export default function JobListPage() {
           You are not associated with any company. Please create a company
           profile first.
         </p>
-        <div className="text-sm text-gray-600">
-          <p>Debug Info:</p>
-          <p>Profile ID: {profileId || "Not found"}</p>
-          <p>Company ID: {companyId || "Not found"}</p>
-          <p>Role: {role || "Not found"}</p>
-        </div>
         <button
           onClick={() => refreshCompanyData()}
           className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"

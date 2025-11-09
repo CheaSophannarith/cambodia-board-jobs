@@ -4,6 +4,17 @@ import { useEffect, useState } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { getAllUsers } from "@/app/actions/user/getAllUsers";
 import DataTable, { Column } from "@/components/Company/DataTable";
+import { Search } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
+import UserForm from "@/components/Company/user/UserForm";
 
 interface User {
   id: string;
@@ -23,41 +34,61 @@ export default function CompanyUsersPage() {
   } = useAuth();
 
   const [users, setUsers] = useState<User[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [initialLoading, setInitialLoading] = useState(true);
+  const [fetchingUsers, setFetchingUsers] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
 
-  useEffect(() => {
-    const fetchUsers = async () => {
-      if (!companyId) {
-        setLoading(false);
-        return;
+  const [nameFilter, setNameFilter] = useState("");
+
+  const fetchUsers = async (isInitial = false) => {
+    if (!companyId) {
+      setInitialLoading(false);
+      return;
+    }
+
+    try {
+      if (isInitial) {
+        setInitialLoading(true);
+      } else {
+        setFetchingUsers(true);
       }
 
-      try {
-        setLoading(true);
-        const usersData = await getAllUsers(Number(companyId));
+      const usersData = await getAllUsers(Number(companyId), nameFilter);
 
-        // Check if the response is an error object
-        if ("success" in usersData && !usersData.success) {
-          setError(usersData.message || "Failed to fetch users");
-          setUsers([]);
-        } else {
-          setUsers(usersData as User[]);
-          setError(null);
-        }
-      } catch (err) {
-        console.error("Error fetching users:", err);
-        setError("An unexpected error occurred");
+      // Check if the response is an error object
+      if ("success" in usersData && !usersData.success) {
+        setError(usersData.message || "Failed to fetch users");
         setUsers([]);
-      } finally {
-        setLoading(false);
+      } else {
+        setUsers(usersData as User[]);
+        setError(null);
       }
-    };
+    } catch (err) {
+      console.error("Error fetching users:", err);
+      setError("An unexpected error occurred");
+      setUsers([]);
+    } finally {
+      setInitialLoading(false);
+      setFetchingUsers(false);
+    }
+  };
 
-    fetchUsers();
+  // Initial load
+  useEffect(() => {
+    if (!authLoading && companyId) {
+      fetchUsers(true);
+    }
   }, [companyId, authLoading]);
 
-  if (authLoading || loading) {
+  // Filter changes
+  useEffect(() => {
+    if (!initialLoading && companyId) {
+      fetchUsers(false);
+    }
+  }, [nameFilter]);
+
+  if (authLoading || initialLoading) {
     return (
       <div className="flex justify-center items-center min-h-screen">
         <p>Loading users...</p>
@@ -121,12 +152,6 @@ export default function CompanyUsersPage() {
           You are not associated with any company. Please create a company
           profile first.
         </p>
-        <div className="text-sm text-gray-600">
-          <p>Debug Info:</p>
-          <p>Profile ID: {profileId || "Not found"}</p>
-          <p>Company ID: {companyId || "Not found"}</p>
-          <p>Role: {role || "Not found"}</p>
-        </div>
         <button
           onClick={() => refreshCompanyData()}
           className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
@@ -140,12 +165,57 @@ export default function CompanyUsersPage() {
   return (
     <div className="min-h-screen px-4 py-4">
       <h1 className="text-xl uppercase font-bold">Users</h1>
+      <div className="flex justify-between items-center my-4 gap-4">
+        <div className="relative w-full max-w-sm">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-500" />
+          <input
+            type="text"
+            value={nameFilter}
+            onChange={(e) => setNameFilter(e.target.value)}
+            placeholder="Search..."
+            className="w-full pl-9 pr-3 py-2 border rounded-md focus:outline-none focus:ring"
+          />
+        </div>
+        <div>
+          <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+            <DialogTrigger asChild>
+              <Button
+                variant="outline"
+                className="bg-notice hover:bg-notice/80 text-white py-4 px-6 rounded-none hover:text-white"
+              >
+                + User
+              </Button>
+            </DialogTrigger>
+            <DialogContent className="max-w-[95vw] sm:max-w-[900px] max-h-[90vh] overflow-y-auto p-0">
+              <div className="sticky top-0 bg-white z-10 px-6 pt-6 pb-4 border-b">
+                <DialogHeader>
+                  <DialogTitle className="text-lg uppercase text-notice">
+                    Create User
+                  </DialogTitle>
+                  <DialogDescription>
+                    Fill out the form below to create a new user.
+                  </DialogDescription>
+                </DialogHeader>
+              </div>
+              <div className="px-6 pb-6">
+                <UserForm
+                  onCancel={() => setIsDialogOpen(false)}
+                  onSuccess={() => {
+                    setIsDialogOpen(false);
+                    fetchUsers();
+                  }}
+                />
+              </div>
+            </DialogContent>
+          </Dialog>
+        </div>
+      </div>
       <DataTable
         data={users}
         columns={columns}
         getRowKey={(user) => user.id}
-        loading={loading}
-        emptyMessage="No Users found. Create your first user"
+        loading={fetchingUsers}
+        emptyMessage="No Users found"
       />
     </div>
   );
