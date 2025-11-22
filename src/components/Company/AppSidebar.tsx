@@ -14,6 +14,7 @@ import {
 import Link from "next/link";
 import Image from "next/image";
 import { usePathname } from "next/navigation";
+import { useAuth } from "@/contexts/AuthContext";
 
 import {
   ChartNoAxesCombined,
@@ -45,6 +46,10 @@ const items = [
 
 export function AppSidebar() {
   const pathname = usePathname();
+
+  const { user, avartarUrl } = useAuth();
+
+  console.log("Sidebar User:", user);
 
   return (
     <Sidebar>
@@ -89,11 +94,23 @@ export function AppSidebar() {
       <SidebarFooter className="border-t">
         <Link href="/company/user-profile" className="w-full">
           <div className="flex items-center gap-3 px-4 py-3">
-            <div className="h-8 w-8 rounded-full bg-notice flex items-center justify-center">
-              <User className="h-5 w-5 text-white" />
-            </div>
+            {avartarUrl ? (
+              <Image
+                src={avartarUrl}
+                alt="User avatar"
+                width={32}
+                height={32}
+                className="h-8 w-8 rounded-full object-cover"
+              />
+            ) : (
+              <div className="h-8 w-8 rounded-full bg-notice flex items-center justify-center">
+                <User className="h-5 w-5 text-white" />
+              </div>
+            )}
             <div className="flex flex-col">
-              <span className="text-sm font-medium">User Profile</span>
+              <span className="text-sm font-medium">
+                {user?.user_metadata?.display_name}
+              </span>
               <span className="text-xs text-muted-foreground">
                 Company Account
               </span>

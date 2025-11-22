@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { getAllUsers } from "@/app/actions/user/getAllUsers";
 import DataTable, { Column } from "@/components/Company/DataTable";
@@ -41,52 +41,55 @@ export default function CompanyUsersPage() {
 
   const [nameFilter, setNameFilter] = useState("");
 
-  const fetchUsers = async (isInitial = false) => {
-    if (!companyId) {
-      setInitialLoading(false);
-      return;
-    }
-
-    try {
-      if (isInitial) {
-        setInitialLoading(true);
-      } else {
-        setFetchingUsers(true);
+  const fetchUsers = useCallback(
+    async (isInitial = false) => {
+      if (!companyId) {
+        setInitialLoading(false);
+        return;
       }
 
-      const usersData = await getAllUsers(Number(companyId), nameFilter);
+      try {
+        if (isInitial) {
+          setInitialLoading(true);
+        } else {
+          setFetchingUsers(true);
+        }
 
-      // Check if the response is an error object
-      if ("success" in usersData && !usersData.success) {
-        setError(usersData.message || "Failed to fetch users");
+        const usersData = await getAllUsers(Number(companyId), nameFilter);
+
+        // Check if the response is an error object
+        if ("success" in usersData && !usersData.success) {
+          setError(usersData.message || "Failed to fetch users");
+          setUsers([]);
+        } else {
+          setUsers(usersData as User[]);
+          setError(null);
+        }
+      } catch (err) {
+        console.error("Error fetching users:", err);
+        setError("An unexpected error occurred");
         setUsers([]);
-      } else {
-        setUsers(usersData as User[]);
-        setError(null);
+      } finally {
+        setInitialLoading(false);
+        setFetchingUsers(false);
       }
-    } catch (err) {
-      console.error("Error fetching users:", err);
-      setError("An unexpected error occurred");
-      setUsers([]);
-    } finally {
-      setInitialLoading(false);
-      setFetchingUsers(false);
-    }
-  };
+    },
+    [companyId, nameFilter]
+  );
 
   // Initial load
   useEffect(() => {
     if (!authLoading && companyId) {
       fetchUsers(true);
     }
-  }, [companyId, authLoading]);
+  }, [companyId, authLoading, fetchUsers]);
 
   // Filter changes
   useEffect(() => {
     if (!initialLoading && companyId) {
       fetchUsers(false);
     }
-  }, [nameFilter]);
+  }, [nameFilter, initialLoading, companyId, fetchUsers]);
 
   if (authLoading || initialLoading) {
     return (

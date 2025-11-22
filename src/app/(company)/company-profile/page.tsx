@@ -1,15 +1,23 @@
-import type { Metadata } from "next";
-import JobForm from "@/components/Company/job/JobForm";
+"use client";
 
-export const metadata: Metadata = {
-  title: "Company Profile - Cambodia Board Jobs",
-  description: "Company Profile page for Cambodia Board Jobs.",
-};
+import { getCompanyProfile } from "@/app/actions/profile/companyProfile/profile";
+import CompanyProfileForm from "@/components/Company/profile/CompanyProfileForm";
+import { useEffect, useState } from "react";
 
 export default function CompanyProfile() {
+  const [profile, setProfile] = useState(null);
+
+  useEffect(() => {
+    const fetchProfile = async () => {
+      const data = await getCompanyProfile();
+      setProfile(data);
+    };
+    fetchProfile();
+  }, []);
+
   return (
-    <div className="flex justify-center items-center min-h-screen">
-     mmm
+    <div className="min-h-screen px-4 py-4">
+      <CompanyProfileForm profile={profile} />
     </div>
   );
 }
