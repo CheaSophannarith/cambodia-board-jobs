@@ -3,13 +3,16 @@
 import { createClient, createServiceClient } from '@/utils/supabase/server'
 
 export async function getAllUsers(companyId: number, fullNameFilter?: string) {
+    console.log('getAllUsers called with companyId:', companyId, 'filter:', fullNameFilter);
 
     const supabase = await createClient();
 
     // Get the authenticated user
     const { data: { user } } = await supabase.auth.getUser();
+    console.log('Auth user:', user?.id);
 
     if (!user) {
+        console.log('No user authenticated');
         return { success: false, message: 'User not authenticated' }
     }
 
@@ -72,25 +75,66 @@ export async function getAllUsers(companyId: number, fullNameFilter?: string) {
     // Create admin client to fetch user emails
     const supabaseAdmin = createServiceClient();
 
-    // Get emails from auth.users for each profile
-    const usersWithEmails = await Promise.all(
-        usersData?.filter((member: any) => member.profiles !== null).map(async (member: any) => {
-            const profile = member.profiles;
+    // Helper function to add timeout to promises
+    const withTimeout = <T,>(promise: Promise<T>, timeoutMs: number): Promise<T> => {
+        return Promise.race([
+            promise,
+            new Promise<T>((_, reject) =>
+                setTimeout(() => reject(new Error('Request timeout')), timeoutMs)
+            )
+        ]);
+    };
 
-            // Fetch user email from auth.users
-            const { data: authUser, error: authError } = await supabaseAdmin.auth.admin.getUserById(profile.user_id);
+    // Get emails from auth.users for each profile with timeout
+    try {
+        const usersWithEmails = await Promise.all(
+            usersData?.filter((member: any) => member.profiles !== null).map(async (member: any) => {
+                const profile = member.profiles;
 
-            return {
-                id: profile.user_id,
-                fullName: profile.full_name,
-                email: authUser?.user?.email || 'N/A',
-                role: member.role,
-                isActive: member.is_active,
-            };
-        }) || []
-    );
+                try {
+                    // Fetch user email from auth.users with 5 second timeout
+                    const { data: authUser, error: authError } = await withTimeout(
+                        supabaseAdmin.auth.admin.getUserById(profile.user_id),
+                        5000
+                    );
 
-    console.log('Fetched users:', usersWithEmails);
+                    if (authError) {
+                        console.error('Error fetching user email:', authError);
+                    }
 
-    return usersWithEmails || [];
+                    return {
+                        id: profile.user_id,
+                        fullName: profile.full_name,
+                        email: authUser?.user?.email || 'N/A',
+                        role: member.role,
+                        isActive: member.is_active,
+                    };
+                } catch (error) {
+                    console.error('Error fetching user details:', error);
+                    // Return user data without email if fetching fails or times out
+                    return {
+                        id: profile.user_id,
+                        fullName: profile.full_name,
+                        email: 'Service temporarily unavailable',
+                        role: member.role,
+                        isActive: member.is_active,
+                    };
+                }
+            }) || []
+        );
+
+        console.log('Fetched users:', usersWithEmails);
+
+        return usersWithEmails || [];
+    } catch (error) {
+        console.error('Error fetching user emails:', error);
+        // Return users without emails if admin API fails completely
+        return usersData?.filter((member: any) => member.profiles !== null).map((member: any) => ({
+            id: member.profiles.user_id,
+            fullName: member.profiles.full_name,
+            email: 'Service temporarily unavailable',
+            role: member.role,
+            isActive: member.is_active,
+        })) || [];
+    }
 }

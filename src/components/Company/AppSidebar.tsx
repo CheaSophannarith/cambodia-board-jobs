@@ -94,7 +94,7 @@ export function AppSidebar() {
       <SidebarFooter className="border-t">
         <Link href="/company/user-profile" className="w-full">
           <div className="flex items-center gap-3 px-4 py-3">
-            {avartarUrl ? (
+            {avartarUrl && avartarUrl.startsWith('http') ? (
               <Image
                 src={avartarUrl}
                 alt="User avatar"

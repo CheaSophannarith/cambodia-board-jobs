@@ -57,11 +57,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         // Get profile first
         const { data: profileData, error: profileError } = await supabase
           .from("profiles")
-          .select("id, avartar_url")
+          .select("id, avatar_url")
           .eq("user_id", userId)
           .maybeSingle();
 
-        if (profileError) throw profileError;
+        if (profileError) {
+          console.error('Profile fetch error:', profileError);
+          throw profileError;
+        }
 
         if (!profileData) {
           setProfileId(null);
@@ -74,7 +77,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         }
 
         setProfileId(profileData.id);
-        setAvartarUrl(profileData.avartar_url || null);
+        setAvartarUrl(profileData.avatar_url || null);
 
         // Get company membership separately
         const { data: memberData } = await supabase

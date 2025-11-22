@@ -33,6 +33,8 @@ export default function CompanyUsersPage() {
     refreshCompanyData,
   } = useAuth();
 
+  console.log('CompanyUsersPage render - companyId:', companyId, 'authLoading:', authLoading);
+
   const [users, setUsers] = useState<User[]>([]);
   const [initialLoading, setInitialLoading] = useState(true);
   const [fetchingUsers, setFetchingUsers] = useState(false);
@@ -43,7 +45,10 @@ export default function CompanyUsersPage() {
 
   const fetchUsers = useCallback(
     async (isInitial = false) => {
+      console.log('fetchUsers called, companyId:', companyId, 'isInitial:', isInitial);
+
       if (!companyId) {
+        console.log('No companyId, exiting');
         setInitialLoading(false);
         return;
       }
@@ -55,7 +60,9 @@ export default function CompanyUsersPage() {
           setFetchingUsers(true);
         }
 
+        console.log('Calling getAllUsers with:', Number(companyId), nameFilter);
         const usersData = await getAllUsers(Number(companyId), nameFilter);
+        console.log('getAllUsers returned:', usersData);
 
         // Check if the response is an error object
         if ("success" in usersData && !usersData.success) {
