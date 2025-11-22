@@ -10,7 +10,7 @@ import {
   SidebarMenuButton,
   SidebarMenuItem,
 } from "@/components/ui/sidebar";
-
+import { createClient } from "@/utils/supabase/client";
 import Link from "next/link";
 import Image from "next/image";
 import { usePathname } from "next/navigation";
@@ -23,6 +23,7 @@ import {
   FileUser,
   User,
 } from "lucide-react";
+import { useEffect, useState } from "react";
 
 const items = [
   { title: "Dashboard", href: "/dashboard", icon: ChartNoAxesCombined },
@@ -47,24 +48,42 @@ const items = [
 export function AppSidebar() {
   const pathname = usePathname();
 
-  const { user, avartarUrl } = useAuth();
+  const { user, avartarUrl, role } = useAuth();
+
+  const [profileUrl, setProfileUrl] = useState<string>("/default-avatar.png");
+
+  useEffect(() => {
+    if (avartarUrl) {
+      const supabase = createClient();
+      const { data } = supabase.storage
+        .from("avatars")
+        .getPublicUrl(avartarUrl);
+
+      if (data?.publicUrl) {
+        // Add timestamp to prevent caching issues
+        setProfileUrl(`${data.publicUrl}?t=${new Date().getTime()}`);
+      }
+    }
+  }, [avartarUrl]);
 
   console.log("Sidebar User:", user);
 
   return (
     <Sidebar>
-      <SidebarHeader className="border-b border-gray-300">
-        <div className="flex items-center gap-2 px-4 py-[22px]">
-          <Image
-            src="/CBJobs.png"
-            alt="cbjobs-logo"
-            width={40}
-            height={40}
-            className="flex-shrink-0 -mt-3"
-          />
-          <span className="text-2xl font-bold leading-none">CBJobs</span>
-        </div>
-      </SidebarHeader>
+      <Link href="/">
+        <SidebarHeader className="border-b border-gray-300">
+          <div className="flex items-center gap-2 px-4 py-[22px]">
+            <Image
+              src="/CBJobs.png"
+              alt="cbjobs-logo"
+              width={40}
+              height={40}
+              className="flex-shrink-0 -mt-3"
+            />
+            <span className="text-2xl font-bold leading-none">CBJobs</span>
+          </div>
+        </SidebarHeader>
+      </Link>
       <SidebarContent>
         <SidebarMenu>
           {items.map((item) => {
@@ -92,11 +111,11 @@ export function AppSidebar() {
         <SidebarGroup />
       </SidebarContent>
       <SidebarFooter className="border-t">
-        <Link href="/company/user-profile" className="w-full">
+        <Link href="/user-profile" className="w-full">
           <div className="flex items-center gap-3 px-4 py-3">
-            {avartarUrl && avartarUrl.startsWith('http') ? (
+            {profileUrl && profileUrl.startsWith("http") ? (
               <Image
-                src={avartarUrl}
+                src={profileUrl}
                 alt="User avatar"
                 width={32}
                 height={32}
@@ -112,7 +131,7 @@ export function AppSidebar() {
                 {user?.user_metadata?.display_name}
               </span>
               <span className="text-xs text-muted-foreground">
-                Company Account
+                {role === "admin" ? "Company Account" : "User Account"}
               </span>
             </div>
           </div>
