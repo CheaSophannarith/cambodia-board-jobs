@@ -19,7 +19,6 @@ import { useRouter } from "next/navigation";
 const jobTypes = [
   { value: "full_time", label: "Full Time" },
   { value: "part_time", label: "Part Time" },
-  { value: "contract", label: "Contract" },
   { value: "remote", label: "Remote" },
   { value: "hybrid", label: "Hybrid" },
 ];

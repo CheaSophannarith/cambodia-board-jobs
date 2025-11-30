@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import DashboardComponent from "@/components/Company/dashboard/Dashboard";
 
 export const metadata: Metadata = {
   title: "Company - Cambodia Board Jobs",
@@ -6,5 +7,9 @@ export const metadata: Metadata = {
 };
 
 export default function Dashboard() {
-  return <div className="flex justify-center items-center min-h-screen">Dashboard</div>;
+  return (
+    <div className="my-10 w-[94%] mx-auto min-h-screen">
+      <DashboardComponent />
+    </div>
+  );
 }

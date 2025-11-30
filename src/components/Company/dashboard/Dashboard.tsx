@@ -1,0 +1,198 @@
+"use client";
+
+import { useAuth } from "@/contexts/AuthContext";
+import { Card } from "@/components/ui/card";
+import { Briefcase, User } from "lucide-react";
+import {
+  getStatistics,
+  getJobTypesDistribution,
+} from "@/app/actions/dashboard/dashboard";
+import { useEffect, useState } from "react";
+import { Button } from "@/components/ui/button";
+import Link from "next/link";
+import JobTypes from "@/components/Company/dashboard/Charts/JobTypes";
+
+interface Statistics {
+  totalJobs: number;
+  totalActiveJobs: number;
+  totalUsers: number;
+  totalActiveUsers: number;
+}
+
+type JobTypeData = {
+  label: string;
+  count: number;
+};
+
+export default function Dashboard() {
+  const { companyName, companyId } = useAuth();
+  const [statistics, setStatistics] = useState<Statistics>({
+    totalJobs: 0,
+    totalActiveJobs: 0,
+    totalUsers: 0,
+    totalActiveUsers: 0,
+  });
+  const [loading, setLoading] = useState(true);
+  const [statisticsError, setStatisticsError] = useState<string | null>(null);
+
+  const [jobTypeData, setJobTypeData] = useState<JobTypeData[]>([]);
+  const [jobTypeLoading, setJobTypeLoading] = useState(true);
+  const [jobTypeError, setJobTypeError] = useState<string | null>(null);
+
+  useEffect(() => {
+    async function fetchStatistics() {
+      if (!companyId) {
+        setStatisticsError("Company ID is not available");
+        setLoading(false);
+        return;
+      }
+
+      try {
+        setLoading(true);
+        const data = await getStatistics(companyId);
+        setStatistics(data);
+        setStatisticsError(null);
+      } catch (err) {
+        console.error("Failed to fetch statistics:", err);
+        setStatisticsError("Failed to load statistics");
+      } finally {
+        setLoading(false);
+      }
+    }
+
+    fetchStatistics();
+  }, [companyId]);
+
+  useEffect(() => {
+    async function fetchJobTypeDistribution() {
+      if (!companyId) {
+        setJobTypeError("Company ID is not available");
+        setJobTypeLoading(false);
+        return;
+      }
+      try {
+        setJobTypeLoading(true);
+        const data = await getJobTypesDistribution(companyId);
+        setJobTypeData(data);
+        setJobTypeError(null);
+      } catch (err) {
+        console.error("Failed to fetch job type distribution:", err);
+        setJobTypeError("Failed to load job type distribution");
+      } finally {
+        setJobTypeLoading(false);
+      }
+    }
+    fetchJobTypeDistribution();
+  }, [companyId]);
+
+  return (
+    <div>
+      <div className="text-3xl font-bold">Dashboard Overview</div>
+      <div className="mt-2 text-gray-500">
+        Welcome back, <span className="text-notice">{companyName} !</span>
+      </div>
+      {statisticsError && (
+        <div className="mt-4 p-4 bg-red-50 border border-red-200 text-red-700 rounded-lg">
+          {statisticsError}
+        </div>
+      )}
+      <div className="mt-10 grid grid-cols-1 md:grid-cols-2 gap-4">
+        <Card className="w-full">
+          <div className="flex justify-between p-4 md:p-6">
+            <div className="flex flex-col gap-2">
+              <p className="text-gray-500 text-sm md:text-base">Total Jobs</p>
+              <p className="text-2xl md:text-3xl lg:text-4xl font-bold">
+                {loading ? "..." : statistics.totalJobs}
+              </p>
+            </div>
+            <div>
+              <Briefcase size={25} className="text-notice ml-auto" />
+            </div>
+          </div>
+        </Card>
+        <Card className="w-full">
+          <div className="flex justify-between p-4 md:p-6">
+            <div className="flex flex-col gap-2">
+              <p className="text-gray-500 text-sm md:text-base">Active Jobs</p>
+              <p className="text-2xl md:text-3xl lg:text-4xl font-bold">
+                {loading ? "..." : statistics.totalActiveJobs}
+              </p>
+            </div>
+            <div>
+              <Briefcase size={25} className="text-notice ml-auto" />
+            </div>
+          </div>
+        </Card>
+        <Card className="w-full">
+          <div className="flex justify-between p-4 md:p-6">
+            <div className="flex flex-col gap-2">
+              <p className="text-gray-500 text-sm md:text-base">Total Users</p>
+              <p className="text-2xl md:text-3xl lg:text-4xl font-bold">
+                {loading ? "..." : statistics.totalUsers}
+              </p>
+            </div>
+            <div>
+              <User size={25} className="text-notice ml-auto" />
+            </div>
+          </div>
+        </Card>
+        <Card className="w-full">
+          <div className="flex justify-between p-4 md:p-6">
+            <div className="flex flex-col gap-2">
+              <p className="text-gray-500 text-sm md:text-base">Active Users</p>
+              <p className="text-2xl md:text-3xl lg:text-4xl font-bold">
+                {loading ? "..." : statistics.totalActiveUsers}
+              </p>
+            </div>
+            <div>
+              <User size={25} className="text-notice ml-auto" />
+            </div>
+          </div>
+        </Card>
+      </div>
+      <div className="mt-16">
+        <h1 className="text-2xl text-gray-600">Quick Action</h1>
+        <div className="flex gap-2 mt-4">
+          <Link href="/company-users">
+            <Button
+              variant="outline"
+              className="px-8 py-6 border-gray-500 text-gray-600 text-lg 
+               hover:bg-notice hover:text-white hover:border-white"
+            >
+              Manage Users
+            </Button>
+          </Link>
+          <Link href="/job-list">
+            <Button
+              variant="outline"
+              className="px-8 py-6 border-gray-500 text-gray-600 text-lg 
+               hover:bg-notice hover:text-white hover:border-white"
+            >
+              All Jobs
+            </Button>
+          </Link>
+          <Link href="/all-application">
+            <Button
+              variant="outline"
+              className="px-8 py-6 border-gray-500 text-gray-600 text-lg 
+               hover:bg-notice hover:text-white hover:border-white"
+            >
+              All Applications
+            </Button>
+          </Link>
+        </div>
+      </div>
+      <div className="mt-16 bg-white rounded-lg">
+        {jobTypeError ? (
+          <div className="p-4 bg-red-50 border border-red-200 text-red-700 rounded-lg">
+            {jobTypeError}
+          </div>
+        ) : jobTypeLoading ? (
+          <div className="p-4 text-center text-gray-500">Loading job types...</div>
+        ) : (
+          <JobTypes jobTypeData={jobTypeData} />
+        )}
+      </div>
+    </div>
+  );
+}

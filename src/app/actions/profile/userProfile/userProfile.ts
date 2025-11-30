@@ -1,43 +1,58 @@
-'use server';
+'use server'
 
-import { createClient, createServiceClient } from '@/utils/supabase/server';
+import { createClient, createServiceClient } from '@/utils/supabase/server'
 import { revalidatePath } from 'next/cache';
 
-export async function editUser(userId: string, formData: FormData) {
+export async function getUserProfile() {
 
     const supabase = await createClient();
 
-    // Get the authenticated user
+    const { data } = await supabase.auth.getUser();
+
+    const { data: userData, error } = await supabase
+        .from('profiles')
+        .select('*')
+        .eq('user_id', data.user?.id)
+        .single();
+
+        if (error) {
+                console.error('Error fetching user details:', error);
+                return null;
+            }
+        
+            // Create admin client to fetch user emails
+        const supabaseAdmin = createServiceClient();
+        
+        const { data: userAuthData, error: authError } = await supabaseAdmin.auth.admin.getUserById(data.user?.id!);
+        
+        
+        if (authError) {
+            console.error('Error fetching user auth data:', authError);
+            return null;
+        }
+        
+        // Merge all of userData and userAuthData.email
+        if (userData && userAuthData?.user) {
+            const mergedData = {
+                ...userData,
+                email: userAuthData.user.email
+            };
+            console.log('Merged user data:', mergedData);
+            return mergedData;
+        }
+        
+        return null;
+
+}
+
+export async function updateUserProfile(userId: string, formData: FormData) {
+
+    const supabase = await createClient();
+
     const { data: { user } } = await supabase.auth.getUser();
 
     if (!user) {
         return { success: false, message: 'User not authenticated' }
-    }
-
-    // First, get the profile for this user
-    const { data: profileData, error: profileError } = await supabase
-        .from('profiles')
-        .select('id')
-        .eq('user_id', user.id)
-        .single()
-
-    if (profileError || !profileData) {
-        console.error('Error fetching profile:', profileError)
-        return { success: false, message: 'Profile not found. Please create your profile first.' }
-    }
-
-    const { data: company } = await supabase
-        .from('company_members')
-        .select('*')
-        .eq('profile_id', profileData.id)
-        .single();
-
-    if (!company) {
-        return { success: false, message: 'You are not a member of any company.' }
-    }
-
-    if (company.role !== 'admin') {
-        return { success: false, message: 'You do not have permission to edit users. Contact your company admin.' }
     }
 
     const fullName = formData.get('name') as string;
@@ -45,6 +60,7 @@ export async function editUser(userId: string, formData: FormData) {
     const location = formData.get('location') as string;
     const phone = formData.get('phone') as string;
     const avatarFile = formData.get('avatar') as File | null;
+    const password = formData.get('password') as string;
 
     // Use service client for admin operations
     const serviceClient = createServiceClient();
@@ -96,9 +112,10 @@ export async function editUser(userId: string, formData: FormData) {
     }
 
     // Update email if changed
-    if (email || fullName) {
+    if (email || fullName || password) {
         const { error: emailError } = await serviceClient.auth.admin.updateUserById(userId, {
             email,
+            password: password || undefined,
             user_metadata: {
                 display_name: fullName,
             },
@@ -111,29 +128,29 @@ export async function editUser(userId: string, formData: FormData) {
     }
 
     // Update profile data
-    const updateData: any = {
-        full_name: fullName,
-        location,
-        phone,
-    };
+        const updateData: any = {
+            full_name: fullName,
+            location,
+            phone,
+        };
+    
+        if (avatarUrl) {
+            updateData.avatar_url = avatarUrl;
+        }
+    
+        const { error: updateError } = await serviceClient
+            .from('profiles')
+            .update(updateData)
+            .eq('user_id', userId);
+    
+        if (updateError) {
+            console.error('Error updating profile:', updateError);
+            return { success: false, message: `Error updating profile: ${updateError.message}` };
+        }
+    
+        revalidatePath('/user-profile');
+    
+        console.log('User updated successfully');
+        return { success: true, message: 'User updated successfully.' };
 
-    if (avatarUrl) {
-        updateData.avatar_url = avatarUrl;
-    }
-
-    const { error: updateError } = await serviceClient
-        .from('profiles')
-        .update(updateData)
-        .eq('user_id', userId);
-
-    if (updateError) {
-        console.error('Error updating profile:', updateError);
-        return { success: false, message: `Error updating profile: ${updateError.message}` };
-    }
-
-    revalidatePath('/company-users');
-    revalidatePath(`/company-users/user-detail/${userId}`);
-
-    console.log('User updated successfully');
-    return { success: true, message: 'User updated successfully.' };
 }

@@ -11,7 +11,7 @@ import { useEffect, useState } from "react";
 
 export function Header() {
   const { companyName, companyLogoUrl } = useAuth();
-  const [logoUrl, setLogoUrl] = useState<string>("/default.png");
+  const [logoUrl, setLogoUrl] = useState<string>();
 
   useEffect(() => {
     if (companyLogoUrl) {
@@ -21,8 +21,7 @@ export function Header() {
         .getPublicUrl(companyLogoUrl);
 
       if (data?.publicUrl) {
-        // Add timestamp to prevent caching issues
-        setLogoUrl(`${data.publicUrl}?t=${new Date().getTime()}`);
+        setLogoUrl(data.publicUrl);
       }
     }
   }, [companyLogoUrl]);
@@ -32,15 +31,17 @@ export function Header() {
       <SidebarTrigger className="mr-4" />
       <div className="flex items-center justify-between w-full">
         <div className="flex items-center gap-2">
-          <div className="w-10 h-10 relative overflow-hidden rounded-md">
-            <Image
-              src={logoUrl}
-              alt="Company logo"
-              width={40}
-              height={40}
-              className="flex-shrink-0 max-w-full max-h-full object-contain"
-            />
-          </div>
+          {logoUrl && (
+            <div className="w-10 h-10 relative overflow-hidden rounded-md">
+              <Image
+                src={logoUrl}
+                alt="Company logo"
+                width={40}
+                height={40}
+                className="flex-shrink-0 max-w-full max-h-full object-contain"
+              />
+            </div>
+          )}
           <div className="flex flex-col">
             <p className="text-sm font-light text-gray-500">Company</p>
             <h2 className="text-lg font-semibold">{companyName}</h2>

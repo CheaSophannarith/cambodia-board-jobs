@@ -3,7 +3,6 @@
 import { createClient, createServiceClient } from '@/utils/supabase/server'
 
 export async function getDetailUser(userId: string) {
-    console.log('getDetailUser called with userId:', userId);
 
     const supabase = await createClient();
 

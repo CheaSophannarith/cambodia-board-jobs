@@ -25,22 +25,31 @@ import {
 } from "lucide-react";
 import { useEffect, useState } from "react";
 
-const items = [
+type NavigationItem = {
+  title: string;
+  href: string;
+  icon: React.ComponentType<{ className?: string }>;
+  requiredRole?: string;
+};
+
+const items: NavigationItem[] = [
   { title: "Dashboard", href: "/dashboard", icon: ChartNoAxesCombined },
   {
     title: "Company Profile",
     href: "/company-profile",
     icon: Building2,
+    requiredRole: "admin", // Only visible to admin
   },
   {
     title: "Company Users",
     href: "/company-users",
     icon: User,
+    requiredRole: "admin", // Only visible to admin
   },
   { title: "Job Lists", href: "/job-list", icon: TableProperties },
   {
     title: "All Applications",
-    href: "/company/all-application",
+    href: "/all-application",
     icon: FileUser,
   },
 ];
@@ -48,9 +57,15 @@ const items = [
 export function AppSidebar() {
   const pathname = usePathname();
 
-  const { user, avartarUrl, role } = useAuth();
+  const { user, avartarUrl, role, loading } = useAuth();
 
   const [profileUrl, setProfileUrl] = useState<string>("/default-avatar.png");
+
+  // Filter navigation items based on user role
+  const visibleItems = items.filter((item) => {
+    if (!item.requiredRole) return true;
+    return role === item.requiredRole;
+  });
 
   useEffect(() => {
     if (avartarUrl) {
@@ -86,27 +101,42 @@ export function AppSidebar() {
       </Link>
       <SidebarContent>
         <SidebarMenu>
-          {items.map((item) => {
-            const isActive = pathname === item.href;
-            return (
-              <SidebarMenuItem key={item.title}>
-                <SidebarMenuButton
-                  asChild
-                  className={`hover:bg-notice hover:text-white hover:px-3 hover:rounded-none ${
-                    isActive ? "bg-notice text-white px-3 rounded-none" : ""
-                  }`}
-                >
-                  <Link
-                    href={item.href}
-                    className="flex items-center py-6 mt-2"
-                  >
-                    <item.icon className="mr-2 h-4 w-4" />
-                    {item.title}
-                  </Link>
-                </SidebarMenuButton>
+          {loading ? (
+            // Show skeleton/placeholder while loading to prevent flash
+            <>
+              <SidebarMenuItem>
+                <div className="h-12 bg-gray-200 animate-pulse rounded mt-2" />
               </SidebarMenuItem>
-            );
-          })}
+              <SidebarMenuItem>
+                <div className="h-12 bg-gray-200 animate-pulse rounded mt-2" />
+              </SidebarMenuItem>
+              <SidebarMenuItem>
+                <div className="h-12 bg-gray-200 animate-pulse rounded mt-2" />
+              </SidebarMenuItem>
+            </>
+          ) : (
+            visibleItems.map((item) => {
+              const isActive = pathname === item.href;
+              return (
+                <SidebarMenuItem key={item.title}>
+                  <SidebarMenuButton
+                    asChild
+                    className={`hover:bg-notice hover:text-white hover:px-3 hover:rounded-none ${
+                      isActive ? "bg-notice text-white px-3 rounded-none" : ""
+                    }`}
+                  >
+                    <Link
+                      href={item.href}
+                      className="flex items-center py-6 mt-2"
+                    >
+                      <item.icon className="mr-2 h-4 w-4" />
+                      {item.title}
+                    </Link>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+              );
+            })
+          )}
         </SidebarMenu>
         <SidebarGroup />
       </SidebarContent>
