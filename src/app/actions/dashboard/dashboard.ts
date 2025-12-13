@@ -106,3 +106,145 @@ export async function getJobTypesDistribution(companyId: string) {
 
     return jobTypes;
 }
+
+/**
+ * Job Posted Last 6 Months
+ */
+
+export async function getPostedJobsLastSixMonths(companyId: string) {
+
+    if (!companyId || companyId === 'null' || companyId === 'undefined') {
+        throw new Error('Invalid company ID provided');
+    }
+
+    const supabase = await createClient();
+
+    const sixMonthsAgo = new Date();
+    sixMonthsAgo.setMonth(sixMonthsAgo.getMonth() - 5);
+    sixMonthsAgo.setDate(1);
+    sixMonthsAgo.setHours(0, 0, 0, 0);
+
+    const { data, error } = await supabase
+        .from('jobs')
+        .select('created_at')
+        .eq('company_id', companyId)
+        .gte('created_at', sixMonthsAgo.toISOString());
+
+    if (error) {
+        console.error('Error fetching posted jobs for last six months:', error);
+        throw error;
+    }
+
+    const monthlyCounts: { [key: string]: number } = {};
+
+    for (let i = 0; i < 6; i++) {
+        const date = new Date();
+        date.setMonth(date.getMonth() - i);
+        const monthKey = date.toLocaleString('default', { year: 'numeric', month: 'long' });
+        monthlyCounts[monthKey] = 0;
+    }
+
+    data?.forEach((job) => {
+        const createdAt = new Date(job.created_at);
+        const monthKey = createdAt.toLocaleString('default', { year: 'numeric', month: 'long' });
+        if (monthlyCounts.hasOwnProperty(monthKey)) {
+            monthlyCounts[monthKey]++;
+        }
+    });
+
+    const result = Object.keys(monthlyCounts)
+        .map((month) => ({ month, count: monthlyCounts[month] }))
+        .sort((a, b) => {
+            const dateA = new Date(a.month);
+            const dateB = new Date(b.month);
+            return dateA.getTime() - dateB.getTime();
+        });
+
+    return result;
+
+}
+
+/**
+ * Get all count of each experience level from jobs table
+ */
+export async function getJobExperienceLevelsDistribution(companyId: string) {
+
+    if (!companyId || companyId === 'null' || companyId === 'undefined') {
+        throw new Error('Invalid company ID provided');
+    }
+
+    const supabase = await createClient();
+
+    // Fetch all jobs with their job levels
+    const { data, error } = await supabase
+        .from('jobs')
+        .select('experience_level')
+        .eq('company_id', companyId);
+
+    if (error) {
+        console.error('Error fetching experience levels distribution:', error);
+        throw error;
+    }
+
+    // Count each experience job level
+    const jobExperienceLevelCounts = {
+        entryLevel: data?.filter(j => j.experience_level === 'Entry Level').length || 0,
+        midLevel: data?.filter(j => j.experience_level === 'Mid Level').length || 0,
+        seniorLevel: data?.filter(j => j.experience_level === 'Senior Level').length || 0,
+        lead: data?.filter(j => j.experience_level === 'Lead').length || 0,
+        manager: data?.filter(j => j.experience_level === 'Manager').length || 0,
+        director: data?.filter(j => j.experience_level === 'Director').length || 0,
+        executive: data?.filter(j => j.experience_level === 'Executive').length || 0,
+    };
+
+    const experienceJobLevels = [
+        { label: 'Entry Level', count: jobExperienceLevelCounts.entryLevel },
+        { label: 'Mid Level', count: jobExperienceLevelCounts.midLevel },
+        { label: 'Senior Level', count: jobExperienceLevelCounts.seniorLevel },
+        { label: 'Lead', count: jobExperienceLevelCounts.lead },
+        { label: 'Manager', count: jobExperienceLevelCounts.manager },
+        { label: 'Director', count: jobExperienceLevelCounts.director },
+        { label: 'Executive', count: jobExperienceLevelCounts.executive },
+    ];
+    
+    return experienceJobLevels;
+
+}
+
+/**
+ * Get remote or onsite job distribution
+ */
+
+export async function getJobLocationDistribution(companyId: string){
+
+    if (!companyId || companyId === 'null' || companyId === 'undefined') {
+        throw new Error('Invalid company ID provided');
+    }
+
+    const supabase = await createClient();
+
+    // Fetch all jobs with their locations
+    const { data, error } = await supabase
+        .from('jobs')
+        .select('is_remote')
+        .eq('company_id', companyId);
+
+    if (error) {
+        console.error('Error fetching job location distribution:', error);
+        throw error;
+    }
+
+    // Count remote and onsite jobs
+    const isRemoteCounts = {
+        remote: data?.filter(j => j.is_remote === true).length || 0,
+        onsite: data?.filter(j => j.is_remote === false).length || 0,
+    };
+
+    const isRemoteCountsData = [
+        { label: 'Remote', count: isRemoteCounts.remote },
+        { label: 'Onsite', count: isRemoteCounts.onsite },
+    ];
+
+    return isRemoteCountsData;
+
+}

@@ -6,11 +6,15 @@ import { Briefcase, User } from "lucide-react";
 import {
   getStatistics,
   getJobTypesDistribution,
+  getPostedJobsLastSixMonths,
+  getJobExperienceLevelsDistribution,
 } from "@/app/actions/dashboard/dashboard";
 import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
 import JobTypes from "@/components/Company/dashboard/Charts/JobTypes";
+import PostedJobLastSixMonths from "@/components/Company/dashboard/Charts/PostedJobLastSixMonths";
+import ExperienceLevel from "./Charts/ExperienceLevel";
 
 interface Statistics {
   totalJobs: number;
@@ -25,7 +29,7 @@ type JobTypeData = {
 };
 
 export default function Dashboard() {
-  const { companyName, companyId } = useAuth();
+  const { companyName, companyId, loading: authLoading } = useAuth();
   const [statistics, setStatistics] = useState<Statistics>({
     totalJobs: 0,
     totalActiveJobs: 0,
@@ -39,8 +43,20 @@ export default function Dashboard() {
   const [jobTypeLoading, setJobTypeLoading] = useState(true);
   const [jobTypeError, setJobTypeError] = useState<string | null>(null);
 
+  const [postedJobData, setPostedJobData] = useState<any[]>([]);
+  const [postedJobLoading, setPostedJobLoading] = useState(true);
+  const [postedJobError, setPostedJobError] = useState<string | null>(null);
+
+  const [jobLevelData, setJobLevelData] = useState<any[]>([]);
+  const [jobLevelLoading, setJobLevelLoading] = useState(true);
+  const [jobLevelError, setJobLevelError] = useState<string | null>(null);
+
   useEffect(() => {
     async function fetchStatistics() {
+      if (authLoading) {
+        return;
+      }
+
       if (!companyId) {
         setStatisticsError("Company ID is not available");
         setLoading(false);
@@ -61,10 +77,14 @@ export default function Dashboard() {
     }
 
     fetchStatistics();
-  }, [companyId]);
+  }, [companyId, authLoading]);
 
   useEffect(() => {
     async function fetchJobTypeDistribution() {
+      if (authLoading) {
+        return;
+      }
+
       if (!companyId) {
         setJobTypeError("Company ID is not available");
         setJobTypeLoading(false);
@@ -83,7 +103,62 @@ export default function Dashboard() {
       }
     }
     fetchJobTypeDistribution();
-  }, [companyId]);
+  }, [companyId, authLoading]);
+
+  useEffect(() => {
+    async function fetchPostedJobsLastSixMonth() {
+      if (authLoading) {
+        return;
+      }
+
+      if (!companyId) {
+        setPostedJobError("Company ID is not available");
+        setPostedJobLoading(false);
+        return;
+      }
+      try {
+        setPostedJobLoading(true);
+        const data = await getPostedJobsLastSixMonths(companyId);
+        setPostedJobData(data);
+        setPostedJobError(null);
+      } catch (err) {
+        console.error("Failed to fetch posted jobs in last six months:", err);
+        setPostedJobError("Failed to load posted jobs data");
+      } finally {
+        setPostedJobLoading(false);
+      }
+    }
+    fetchPostedJobsLastSixMonth();
+  }, [companyId, authLoading]);
+
+  useEffect(() => {
+    async function fetchExperienceJobLevelDistribution() {
+      if (authLoading) {
+        return;
+      }
+
+      if (!companyId) {
+        setJobLevelError("Company ID is not available");
+        setJobLevelLoading(false);
+        return;
+      }
+      try {
+        setJobLevelLoading(true);
+        const data = await getJobExperienceLevelsDistribution(companyId);
+        setJobLevelData(data);
+        setJobLevelError(null);
+      } catch (err) {
+        console.error(
+          "Failed to fetch experience job level distribution:",
+          err
+        );
+        setJobLevelError("Failed to load experience job level distribution");
+      } finally {
+        setJobLevelLoading(false);
+      }
+    }
+    fetchExperienceJobLevelDistribution();
+  }, [companyId, authLoading]);
 
   return (
     <div>
@@ -188,9 +263,37 @@ export default function Dashboard() {
             {jobTypeError}
           </div>
         ) : jobTypeLoading ? (
-          <div className="p-4 text-center text-gray-500">Loading job types...</div>
+          <div className="p-4 text-center text-gray-500">
+            Loading job types...
+          </div>
         ) : (
           <JobTypes jobTypeData={jobTypeData} />
+        )}
+      </div>
+      <div className="mt-16 bg-white rounded-lg">
+        {postedJobError ? (
+          <div className="p-4 bg-red-50 border border-red-200 text-red-700 rounded-lg">
+            {postedJobError}
+          </div>
+        ) : postedJobLoading ? (
+          <div className="p-4 text-center text-gray-500">
+            Loading posted jobs last six months types...
+          </div>
+        ) : (
+          <PostedJobLastSixMonths PostedJobsLastSixMonthsData={postedJobData} />
+        )}
+      </div>
+      <div className="mt-16 bg-white rounded-lg">
+        {postedJobError ? (
+          <div className="p-4 bg-red-50 border border-red-200 text-red-700 rounded-lg">
+            {postedJobError}
+          </div>
+        ) : postedJobLoading ? (
+          <div className="p-4 text-center text-gray-500">
+            Loading posted jobs last six months types...
+          </div>
+        ) : (
+          <ExperienceLevel ExperienceLevelData={jobLevelData} />
         )}
       </div>
     </div>
