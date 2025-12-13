@@ -8,12 +8,16 @@ import {
   getJobTypesDistribution,
   getPostedJobsLastSixMonths,
   getJobExperienceLevelsDistribution,
+  getIsRemoteJobDistribution,
+  getJobStatusDistribution
 } from "@/app/actions/dashboard/dashboard";
-import { useEffect, useState } from "react";
+import { use, useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
 import JobTypes from "@/components/Company/dashboard/Charts/JobTypes";
 import PostedJobLastSixMonths from "@/components/Company/dashboard/Charts/PostedJobLastSixMonths";
+import StatusJob from "@/components/Company/dashboard/Charts/StatusJob";
+import IsRemote from "@/components/Company/dashboard/Charts/IsRemote";
 import ExperienceLevel from "./Charts/ExperienceLevel";
 
 interface Statistics {
@@ -50,6 +54,14 @@ export default function Dashboard() {
   const [jobLevelData, setJobLevelData] = useState<any[]>([]);
   const [jobLevelLoading, setJobLevelLoading] = useState(true);
   const [jobLevelError, setJobLevelError] = useState<string | null>(null);
+
+  const [isRemoteData, setIsRemoteData] = useState<any[]>([]);
+  const [isRemoteLoading, setIsRemoteLoading] = useState(true);
+  const [isRemoteError, setIsRemoteError] = useState<string | null>(null);
+
+  const [jobStatusData, setJobStatusData] = useState<any[]>([]);
+  const [jobStatusLoading, setJobStatusLoading] = useState(true);
+  const [jobStatusError, setJobStatusError] = useState<string | null>(null);
 
   useEffect(() => {
     async function fetchStatistics() {
@@ -158,6 +170,58 @@ export default function Dashboard() {
       }
     }
     fetchExperienceJobLevelDistribution();
+  }, [companyId, authLoading]);
+
+  useEffect(() => {
+    async function fetchIsRemoteDistribution() {
+      if (authLoading) {
+        return;
+      }
+      if (!companyId) {
+        setIsRemoteError("Company ID is not available");
+        setIsRemoteLoading(false);
+        return;
+      }
+      try {
+        setIsRemoteLoading(true);
+        const data = await getIsRemoteJobDistribution(companyId);
+        setIsRemoteData(data);
+        setIsRemoteError(null);
+      } catch (err) {
+        console.error("Failed to fetch is remote distribution:", err);
+        setIsRemoteError("Failed to load is remote distribution");
+      } finally {
+        setIsRemoteLoading(false);
+      }
+    }
+    fetchIsRemoteDistribution();
+  }, [companyId, authLoading]);
+
+  useEffect(() => {
+    async function fetchJobStatusDistribution() {
+      if (authLoading) {
+        return;
+      }
+      if (!companyId) {
+        setJobStatusError("Company ID is not available");
+        setJobStatusLoading(false);
+        return;
+      }
+      try {
+        setJobStatusLoading(true);
+        const data = await getJobStatusDistribution(companyId);
+        setJobStatusData(data);
+        setJobStatusError(null);
+      }
+      catch (err) {
+        console.error("Failed to fetch job status distribution:", err);
+        setJobStatusError("Failed to load job status distribution");
+      }
+      finally {
+        setJobStatusLoading(false);
+      }
+    }
+    fetchJobStatusDistribution();
   }, [companyId, authLoading]);
 
   return (
@@ -284,16 +348,42 @@ export default function Dashboard() {
         )}
       </div>
       <div className="mt-16 bg-white rounded-lg">
-        {postedJobError ? (
+        {jobLevelError ? (
           <div className="p-4 bg-red-50 border border-red-200 text-red-700 rounded-lg">
-            {postedJobError}
+            {jobLevelError}
           </div>
-        ) : postedJobLoading ? (
+        ) : jobLevelLoading ? (
           <div className="p-4 text-center text-gray-500">
-            Loading posted jobs last six months types...
+            Loading job experience level...
           </div>
         ) : (
           <ExperienceLevel ExperienceLevelData={jobLevelData} />
+        )}
+      </div>
+      <div className="mt-16 bg-white rounded-lg">
+        {isRemoteError ? (
+          <div className="p-4 bg-red-50 border border-red-200 text-red-700 rounded-lg">
+            {isRemoteError}
+          </div>
+        ) : isRemoteLoading ? (
+          <div className="p-4 text-center text-gray-500">
+            Loading total of remote and onsite jobs...
+          </div>
+        ) : (
+          <IsRemote isRemoteData={isRemoteData} />
+        )}
+      </div>
+      <div className="mt-16 bg-white rounded-lg">
+        {jobStatusError ? (
+          <div className="p-4 bg-red-50 border border-red-200 text-red-700 rounded-lg">
+            {jobStatusError}
+          </div>
+        ) : jobStatusLoading ? (
+          <div className="p-4 text-center text-gray-500">
+            Loading total of jobs status...
+          </div>
+        ) : (
+          <StatusJob StatusJobData={jobStatusData} />
         )}
       </div>
     </div>

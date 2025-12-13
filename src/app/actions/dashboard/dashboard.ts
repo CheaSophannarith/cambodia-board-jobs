@@ -60,8 +60,6 @@ export async function getStatistics(companyId: string) {
         throw activeUsersError;
     }
 
-    console.log({ totalJobs, totalActiveJobs, totalUsers, totalActiveUsers });
-
     return {
         totalJobs: totalJobs || 0,
         totalActiveJobs: totalActiveJobs || 0,
@@ -215,7 +213,7 @@ export async function getJobExperienceLevelsDistribution(companyId: string) {
  * Get remote or onsite job distribution
  */
 
-export async function getJobLocationDistribution(companyId: string){
+export async function getIsRemoteJobDistribution(companyId: string){
 
     if (!companyId || companyId === 'null' || companyId === 'undefined') {
         throw new Error('Invalid company ID provided');
@@ -246,5 +244,48 @@ export async function getJobLocationDistribution(companyId: string){
     ];
 
     return isRemoteCountsData;
+}
+
+/**
+ * Get Active, expired, draft and close 
+ */
+
+export async function getJobStatusDistribution(companyId: string) {
+
+    if (!companyId || companyId === 'null' || companyId === 'undefined') {
+        throw new Error('Invalid company ID provided');
+    }
+
+    const supabase = await createClient();
+
+    // Fetch all jobs with their status
+    const { data, error } = await supabase
+        .from('jobs')
+        .select('status')
+        .eq('company_id', companyId);
+
+    if (error) {
+        console.error('Error fetching job status distribution:', error);
+        throw error;
+    }
+
+    // Count each job status
+    const jobStatusCounts = {
+        active: data?.filter(j => j.status === 'active').length || 0,
+        expired: data?.filter(j => j.status === 'expired').length || 0,
+        draft: data?.filter(j => j.status === 'draft').length || 0,
+        closed: data?.filter(j => j.status === 'closed').length || 0,
+    };
+
+    const jobStatuses = [
+        { label: 'Active', count: jobStatusCounts.active },
+        { label: 'Expired', count: jobStatusCounts.expired },
+        { label: 'Draft', count: jobStatusCounts.draft },
+        { label: 'Closed', count: jobStatusCounts.closed },
+    ];
+
+    console.log('Job Statuses:', jobStatuses);
+
+    return jobStatuses;
 
 }
