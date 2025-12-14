@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { getAllJobs } from "@/app/actions/job/getAllJobs";
 import DataTable, { Column } from "@/components/Company/DataTable";
+import { Eye, Search } from "lucide-react";
 
 interface Job {
   id: string;
@@ -17,6 +18,32 @@ interface Job {
   experience_level: string;
 }
 
+// Helper function to format relative time
+function getRelativeTime(dateString: string): string {
+  const date = new Date(dateString);
+  const now = new Date();
+  const diffInMs = now.getTime() - date.getTime();
+  const diffInDays = Math.floor(diffInMs / (1000 * 60 * 60 * 24));
+  const diffInWeeks = Math.floor(diffInDays / 7);
+  const diffInMonths = Math.floor(diffInDays / 30);
+
+  if (diffInDays === 0) {
+    return "Today";
+  } else if (diffInDays === 1) {
+    return "1 day ago";
+  } else if (diffInDays < 7) {
+    return `${diffInDays} days ago`;
+  } else if (diffInWeeks === 1) {
+    return "1 week ago";
+  } else if (diffInWeeks < 4) {
+    return `${diffInWeeks} weeks ago`;
+  } else if (diffInMonths === 1) {
+    return "1 month ago";
+  } else {
+    return `${diffInMonths} months ago`;
+  }
+}
+
 export default function JobListPage() {
   const {
     companyId,
@@ -28,6 +55,8 @@ export default function JobListPage() {
   const [jobs, setJobs] = useState<Job[]>([]);
   const [loading, setLoading] = useState(true);
 
+  const [jobTitleFilter, setJobTitleFilter] = useState("");
+
   useEffect(() => {
     const fetchJobs = async () => {
       if (!companyId) {
@@ -36,7 +65,7 @@ export default function JobListPage() {
       }
 
       try {
-        const jobsData = await getAllJobs(companyId);
+        const jobsData = await getAllJobs(companyId, jobTitleFilter);
         setJobs(jobsData);
       } catch (error) {
         console.error("Error fetching jobs:", error);
@@ -48,66 +77,80 @@ export default function JobListPage() {
     if (!authLoading) {
       fetchJobs();
     }
-  }, [companyId, authLoading]);
+  }, [companyId, jobTitleFilter, authLoading]);
 
   const columns: Column<Job>[] = [
     {
       key: "title",
-      header: "Title",
+      header: "JOB TITLE",
       className: "font-medium",
     },
     {
       key: "location",
-      header: "Location",
+      header: "LOCATION",
       render: (job) => (job.is_remote ? "Remote" : job.location),
     },
     {
       key: "job_type",
-      header: "Type",
-      className: "capitalize",
+      header: "TYPE",
+      className: "capitalize text-gray-600",
     },
     {
       key: "experience_level",
-      header: "Experience",
+      header: "EXPERIENCE",
       className: "capitalize",
     },
     {
       key: "status",
-      header: "Status",
-      render: (job) => (
-        <span
-          className={`px-2 py-1 rounded-full text-xs ${
-            job.status === "active"
-              ? "bg-green-100 text-green-800"
-              : "bg-gray-100 text-gray-800"
-          }`}
-        >
-          {job.status}
-        </span>
-      ),
+      header: "STATUS",
+      render: (job) => {
+        const statusLower = job.status.toLowerCase();
+        let bgColor = "bg-gray-100";
+        let textColor = "text-gray-800";
+
+        if (statusLower === "active") {
+          bgColor = "bg-green-100";
+          textColor = "text-green-800";
+        } else if (statusLower === "closed") {
+          bgColor = "bg-red-100";
+          textColor = "text-red-800";
+        } else if (statusLower === "inactive") {
+          bgColor = "bg-gray-100";
+          textColor = "text-gray-800";
+        }
+
+        return (
+          <span
+            className={`px-3 py-1 rounded-full text-xs ${bgColor} ${textColor} capitalize`}
+          >
+            {job.status}
+          </span>
+        );
+      },
     },
     {
       key: "created_at",
-      header: "Posted Date",
-      render: (job) => new Date(job.created_at).toLocaleDateString(),
+      header: "POSTED DATE",
+      render: (job) => getRelativeTime(job.created_at),
     },
     {
       key: "application_deadline",
-      header: "Application Deadline",
+      header: "APPLICATION DEADLINE",
       render: (job) =>
         job.application_deadline
-          ? new Date(job.application_deadline).toLocaleDateString()
+          ? getRelativeTime(job.application_deadline)
           : "N/A",
     },
     {
       key: "actions",
-      header: "Actions",
+      header: "ACTIONS",
       render: (job) => (
         <a
-          className="text-white bg-blue-500 rounded-xl px-4 py-1 mr-[-4] hover:underline inline-block"
+          className="text-blue-500 hover:text-blue-700 inline-flex items-center gap-1"
           href={`/job-list/job-detail/${job.id}`}
         >
-          Detail
+          <Eye className="w-4 h-4" />
+          View Details
         </a>
       ),
     },
@@ -141,12 +184,23 @@ export default function JobListPage() {
   return (
     <div className="min-h-screen px-4 py-4">
       <h1 className="text-xl uppercase font-bold">All Jobs</h1>
+      <br />
+      <div className="relative w-full max-w-sm">
+        <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-500" />
+        <input
+          type="text"
+          value={jobTitleFilter}
+          onChange={(e) => setJobTitleFilter(e.target.value)}
+          placeholder="Search..."
+          className="w-full pl-9 pr-3 py-2 border rounded-md focus:outline-none focus:ring"
+        />
+      </div>
       <DataTable
         data={jobs}
         columns={columns}
         getRowKey={(job) => job.id}
         loading={loading}
-        emptyMessage="No jobs found. Create your first job posting!"
+        emptyMessage="No jobs found."
       />
     </div>
   );

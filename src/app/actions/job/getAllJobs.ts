@@ -3,7 +3,7 @@
 import { revalidatePath } from 'next/cache'
 import { createClient } from '@/utils/supabase/server'
 
-export async function getAllJobs(companyId: string) {
+export async function getAllJobs(companyId: string, jobTitleFilter?: string) {
 
     const supabase = await createClient()
 
@@ -11,6 +11,7 @@ export async function getAllJobs(companyId: string) {
         .from('jobs')
         .select('*')
         .eq('company_id', companyId)
+        .ilike('title', `%${jobTitleFilter || ''}%`)
         .order('created_at', { ascending: false })
 
     if (error) {

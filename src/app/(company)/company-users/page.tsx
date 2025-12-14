@@ -42,9 +42,19 @@ export default function CompanyUsersPage() {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
 
   const [nameFilter, setNameFilter] = useState("");
+  const [debouncedNameFilter, setDebouncedNameFilter] = useState("");
+
+  // Debounce the search input
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setDebouncedNameFilter(nameFilter);
+    }, 300);
+
+    return () => clearTimeout(timer);
+  }, [nameFilter]);
 
   const fetchUsers = useCallback(
-    async (isInitial = false) => {
+    async (isInitial = false, searchFilter = "") => {
       console.log('fetchUsers called, companyId:', companyId, 'isInitial:', isInitial);
 
       if (!companyId) {
@@ -60,8 +70,8 @@ export default function CompanyUsersPage() {
           setFetchingUsers(true);
         }
 
-        console.log('Calling getAllUsers with:', Number(companyId), nameFilter);
-        const usersData = await getAllUsers(Number(companyId), nameFilter);
+        console.log('Calling getAllUsers with:', Number(companyId), searchFilter);
+        const usersData = await getAllUsers(Number(companyId), searchFilter);
         console.log('getAllUsers returned:', usersData);
 
         // Check if the response is an error object
@@ -81,22 +91,22 @@ export default function CompanyUsersPage() {
         setFetchingUsers(false);
       }
     },
-    [companyId, nameFilter]
+    [companyId]
   );
 
   // Initial load
   useEffect(() => {
     if (!authLoading && companyId) {
-      fetchUsers(true);
+      fetchUsers(true, "");
     }
   }, [companyId, authLoading, fetchUsers]);
 
-  // Filter changes
+  // Filter changes (debounced)
   useEffect(() => {
     if (!initialLoading && companyId) {
-      fetchUsers(false);
+      fetchUsers(false, debouncedNameFilter);
     }
-  }, [nameFilter, initialLoading, companyId, fetchUsers]);
+  }, [debouncedNameFilter, initialLoading, companyId, fetchUsers]);
 
   if (authLoading || initialLoading) {
     return (

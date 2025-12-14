@@ -3,7 +3,6 @@
 import { createClient, createServiceClient } from '@/utils/supabase/server'
 
 export async function getAllUsers(companyId: number, fullNameFilter?: string) {
-    console.log('getAllUsers called with companyId:', companyId, 'filter:', fullNameFilter);
 
     const supabase = await createClient();
 
@@ -12,7 +11,6 @@ export async function getAllUsers(companyId: number, fullNameFilter?: string) {
     console.log('Auth user:', user?.id);
 
     if (!user) {
-        console.log('No user authenticated');
         return { success: false, message: 'User not authenticated' }
     }
 
