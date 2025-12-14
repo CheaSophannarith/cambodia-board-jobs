@@ -289,3 +289,31 @@ export async function getJobStatusDistribution(companyId: string) {
     return jobStatuses;
 
 }
+
+/**
+ * Get 5 latest jobs that were created
+ */
+
+export async function getLatestJobs(companyId: string) {
+
+    if (!companyId || companyId === 'null' || companyId === 'undefined') {
+        throw new Error('Invalid company ID provided');
+    }
+
+    const supabase = await createClient();
+
+    const { data, error } = await supabase
+        .from('jobs')
+        .select('*')
+        .eq('company_id', companyId)
+        .order('created_at', { ascending: false })
+        .limit(5);
+
+    if (error) {
+        console.error('Error fetching latest jobs:', error);
+        throw error;
+    }
+
+    return data || [];
+
+}

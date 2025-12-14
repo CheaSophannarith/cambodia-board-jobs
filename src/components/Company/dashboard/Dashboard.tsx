@@ -9,7 +9,8 @@ import {
   getPostedJobsLastSixMonths,
   getJobExperienceLevelsDistribution,
   getIsRemoteJobDistribution,
-  getJobStatusDistribution
+  getJobStatusDistribution,
+  getLatestJobs
 } from "@/app/actions/dashboard/dashboard";
 import { use, useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
@@ -18,6 +19,7 @@ import JobTypes from "@/components/Company/dashboard/Charts/JobTypes";
 import PostedJobLastSixMonths from "@/components/Company/dashboard/Charts/PostedJobLastSixMonths";
 import StatusJob from "@/components/Company/dashboard/Charts/StatusJob";
 import IsRemote from "@/components/Company/dashboard/Charts/IsRemote";
+import LatestJobs from "@/components/Company/dashboard/Charts/LatestJobs";
 import ExperienceLevel from "./Charts/ExperienceLevel";
 
 interface Statistics {
@@ -62,6 +64,10 @@ export default function Dashboard() {
   const [jobStatusData, setJobStatusData] = useState<any[]>([]);
   const [jobStatusLoading, setJobStatusLoading] = useState(true);
   const [jobStatusError, setJobStatusError] = useState<string | null>(null);
+
+  const [latestJobsData, setLatestJobsData] = useState<any[]>([]);
+  const [latestJobsLoading, setLatestJobsLoading] = useState(true);
+  const [latestJobsError, setLatestJobsError] = useState<string | null>(null);
 
   useEffect(() => {
     async function fetchStatistics() {
@@ -224,6 +230,33 @@ export default function Dashboard() {
     fetchJobStatusDistribution();
   }, [companyId, authLoading]);
 
+  useEffect(() => {
+    async function fetchLatestJobs() {
+      if (authLoading) {
+        return;
+      }
+      if (!companyId) {
+        setLatestJobsError("Company ID is not available");
+        setLatestJobsLoading(false);
+        return;
+      }
+      try {
+        setLatestJobsLoading(true);
+        const data = await getLatestJobs(companyId);
+        setLatestJobsData(data);
+        setLatestJobsError(null);
+      }
+      catch (err) {
+        console.error("Failed to fetch latest jobs:", err);
+        setLatestJobsError("Failed to load latest jobs");
+      }
+      finally {
+        setLatestJobsLoading(false);
+      }
+    }
+    fetchLatestJobs();
+  }, [companyId, authLoading]);
+
   return (
     <div>
       <div className="text-3xl font-bold">Dashboard Overview</div>
@@ -384,6 +417,19 @@ export default function Dashboard() {
           </div>
         ) : (
           <StatusJob StatusJobData={jobStatusData} />
+        )}
+      </div>
+      <div className="mt-16 bg-white rounded-lg">
+        {latestJobsError ? (
+          <div className="p-4 bg-red-50 border border-red-200 text-red-700 rounded-lg">
+            {latestJobsError}
+          </div>
+        ) : latestJobsLoading ? (
+          <div className="p-4 text-center text-gray-500">
+            Loading 5 latest jobs...
+          </div>
+        ) : (
+          <LatestJobs latestJobsData={latestJobsData} />
         )}
       </div>
     </div>
