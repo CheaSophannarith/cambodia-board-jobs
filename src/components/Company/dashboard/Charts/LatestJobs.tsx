@@ -105,7 +105,7 @@ const columns: Column<LatestJobsData>[] = [
       job.application_deadline
         ? getRelativeTime(job.application_deadline)
         : "N/A",
-  },
+  },  
   {
     key: "actions",
     header: "ACTIONS",
