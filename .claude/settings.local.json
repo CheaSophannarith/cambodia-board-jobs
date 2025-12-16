@@ -2,7 +2,8 @@
   "permissions": {
     "allow": [
       "Bash(NUL)",
-      "Bash(timeout /t 2)"
+      "Bash(timeout /t 2)",
+      "Bash(taskkill:*)"
     ],
     "deny": [],
     "ask": []

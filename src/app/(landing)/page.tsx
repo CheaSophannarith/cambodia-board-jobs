@@ -1,8 +1,25 @@
+"use client";
+
+import { useEffect } from "react";
 import Image from "next/image";
 import PromotionalSection from "@/components/Landing/PromotionalSection";
 import SearchableJobSection from "@/components/Landing/SearchableJobSection";
 
 export default function Home() {
+  useEffect(() => {
+    // Handle scrolling to hash on page load
+    const hash = window.location.hash;
+    if (hash) {
+      const targetId = hash.substring(1); // Remove the # character
+      setTimeout(() => {
+        const element = document.getElementById(targetId);
+        if (element) {
+          element.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+      }, 100); // Small delay to ensure the page has rendered
+    }
+  }, []);
+
   return (
     <div>
       <SearchableJobSection

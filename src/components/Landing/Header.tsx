@@ -30,6 +30,9 @@ export default function Header() {
     const element = document.getElementById(targetId);
     if (element) {
       element.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    } else {
+      // If element doesn't exist, navigate to home page with hash
+      router.push(`/#${targetId}`);
     }
   };
 

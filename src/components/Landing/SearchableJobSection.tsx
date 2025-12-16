@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, ReactNode } from "react";
+import Link from "next/link";
 import SearchForm from "./SearchForm";
 import JobSearch from "./JobSearch";
 
@@ -50,7 +51,7 @@ export default function SearchableJobSection({
         <h1 className="uppercase text-2xl text-notice font-bold mb-8">
           List All Job
         </h1>
-        <JobSearch searchFilters={searchFilters} />
+        <JobSearch searchFilters={searchFilters}/>
       </div>
     </>
   );

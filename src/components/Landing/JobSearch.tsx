@@ -3,6 +3,7 @@
 import { useEffect, useState, useMemo } from "react";
 import { getAllJobs } from "@/app/actions/landingpage/getAllJobs";
 import JobCard from "./JobCard";
+import Link from "next/link";
 
 interface JobSearchProps {
   searchFilters?: {
@@ -37,18 +38,22 @@ export default function JobSearch({ searchFilters }: JobSearchProps) {
     }
 
     return jobs.filter((job) => {
-      const matchesTitle = !searchFilters.title ||
+      const matchesTitle =
+        !searchFilters.title ||
         job.title?.toLowerCase().includes(searchFilters.title.toLowerCase());
 
-      const matchesLocation = !searchFilters.location ||
-        job.location?.toLowerCase().includes(searchFilters.location.toLowerCase());
+      const matchesLocation =
+        !searchFilters.location ||
+        job.location
+          ?.toLowerCase()
+          .includes(searchFilters.location.toLowerCase());
 
       return matchesTitle && matchesLocation;
     });
   }, [jobs, searchFilters]);
 
   return (
-    <div className="">
+    <div>
       {loading && (
         <div className="flex flex-col items-center justify-center py-20">
           <div className="animate-spin rounded-full h-16 w-16 border-t-4 border-b-4 border-notice"></div>
@@ -73,7 +78,9 @@ export default function JobSearch({ searchFilters }: JobSearchProps) {
               />
             </svg>
           </div>
-          <p className="text-red-700 font-semibold text-lg">Error loading jobs</p>
+          <p className="text-red-700 font-semibold text-lg">
+            Error loading jobs
+          </p>
           <p className="text-red-600 text-sm mt-2">{error.message}</p>
         </div>
       )}
@@ -105,7 +112,9 @@ export default function JobSearch({ searchFilters }: JobSearchProps) {
       {!loading && !error && filteredJobs.length > 0 && (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {filteredJobs.map((job) => (
-            <JobCard key={job.id} job={job} />
+            <Link key={job.id} href={`/jobs/${job.id}`}>
+              <JobCard job={job} />
+            </Link>
           ))}
         </div>
       )}
