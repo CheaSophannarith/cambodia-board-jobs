@@ -25,6 +25,14 @@ export default function Header() {
     router.refresh();
   };
 
+  const handleSmoothScroll = (e: React.MouseEvent<HTMLAnchorElement>, targetId: string) => {
+    e.preventDefault();
+    const element = document.getElementById(targetId);
+    if (element) {
+      element.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+  };
+
   return (
     <header className="fixed top-0 left-0 right-0 bg-[#f1f2f2] z-50 w-screen">
       <div className="flex justify-between items-center max-w-7xl mx-auto py-4 px-4 lg:px-6">
@@ -42,7 +50,8 @@ export default function Header() {
           </div>
           <nav className="hidden md:flex items-center space-x-6">
             <Link
-              href="#"
+              href="#find-jobs"
+              onClick={(e) => handleSmoothScroll(e, 'find-jobs')}
               className="font-medium text-base text-gray-600 hover:text-notice transition"
             >
               Find Jobs

@@ -264,7 +264,7 @@ export default function Dashboard() {
         Welcome back, <span className="text-notice">{companyName} !</span>
       </div>
       {statisticsError && (
-        <div className="mt-4 p-4 bg-red-50 border border-red-200 text-red-700 rounded-lg">
+        <div className="mt-4 p-4 bg-red-50 border border-red-200 text-red-700">
           {statisticsError}
         </div>
       )}
@@ -354,74 +354,76 @@ export default function Dashboard() {
           </Link>
         </div>
       </div>
-      <div className="mt-16 bg-white rounded-lg">
-        {jobTypeError ? (
-          <div className="p-4 bg-red-50 border border-red-200 text-red-700 rounded-lg">
-            {jobTypeError}
-          </div>
-        ) : jobTypeLoading ? (
-          <div className="p-4 text-center text-gray-500">
-            Loading job types...
-          </div>
-        ) : (
-          <JobTypes jobTypeData={jobTypeData} />
-        )}
+      <div className="mt-16 grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <div className="bg-white">
+          {jobTypeError ? (
+            <div className="p-4 bg-red-50 border border-red-200 text-red-700">
+              {jobTypeError}
+            </div>
+          ) : jobTypeLoading ? (
+            <div className="p-4 text-center text-gray-500">
+              Loading job types...
+            </div>
+          ) : (
+            <JobTypes jobTypeData={jobTypeData} />
+          )}
+        </div>
+        <div className="bg-white">
+          {postedJobError ? (
+            <div className="p-4 bg-red-50 border border-red-200 text-red-700">
+              {postedJobError}
+            </div>
+          ) : postedJobLoading ? (
+            <div className="p-4 text-center text-gray-500">
+              Loading posted jobs last six months types...
+            </div>
+          ) : (
+            <PostedJobLastSixMonths PostedJobsLastSixMonthsData={postedJobData} />
+          )}
+        </div>
+        <div className="bg-white">
+          {jobLevelError ? (
+            <div className="p-4 bg-red-50 border border-red-200 text-red-700">
+              {jobLevelError}
+            </div>
+          ) : jobLevelLoading ? (
+            <div className="p-4 text-center text-gray-500">
+              Loading job experience level...
+            </div>
+          ) : (
+            <ExperienceLevel ExperienceLevelData={jobLevelData} />
+          )}
+        </div>
+        <div className="bg-white">
+          {isRemoteError ? (
+            <div className="p-4 bg-red-50 border border-red-200 text-red-700">
+              {isRemoteError}
+            </div>
+          ) : isRemoteLoading ? (
+            <div className="p-4 text-center text-gray-500">
+              Loading total of remote and onsite jobs...
+            </div>
+          ) : (
+            <IsRemote isRemoteData={isRemoteData} />
+          )}
+        </div>
+        <div className="bg-white">
+          {jobStatusError ? (
+            <div className="p-4 bg-red-50 border border-red-200 text-red-700">
+              {jobStatusError}
+            </div>
+          ) : jobStatusLoading ? (
+            <div className="p-4 text-center text-gray-500">
+              Loading total of jobs status...
+            </div>
+          ) : (
+            <StatusJob StatusJobData={jobStatusData} />
+          )}
+        </div>
       </div>
-      <div className="mt-16 bg-white rounded-lg">
-        {postedJobError ? (
-          <div className="p-4 bg-red-50 border border-red-200 text-red-700 rounded-lg">
-            {postedJobError}
-          </div>
-        ) : postedJobLoading ? (
-          <div className="p-4 text-center text-gray-500">
-            Loading posted jobs last six months types...
-          </div>
-        ) : (
-          <PostedJobLastSixMonths PostedJobsLastSixMonthsData={postedJobData} />
-        )}
-      </div>
-      <div className="mt-16 bg-white rounded-lg">
-        {jobLevelError ? (
-          <div className="p-4 bg-red-50 border border-red-200 text-red-700 rounded-lg">
-            {jobLevelError}
-          </div>
-        ) : jobLevelLoading ? (
-          <div className="p-4 text-center text-gray-500">
-            Loading job experience level...
-          </div>
-        ) : (
-          <ExperienceLevel ExperienceLevelData={jobLevelData} />
-        )}
-      </div>
-      <div className="mt-16 bg-white rounded-lg">
-        {isRemoteError ? (
-          <div className="p-4 bg-red-50 border border-red-200 text-red-700 rounded-lg">
-            {isRemoteError}
-          </div>
-        ) : isRemoteLoading ? (
-          <div className="p-4 text-center text-gray-500">
-            Loading total of remote and onsite jobs...
-          </div>
-        ) : (
-          <IsRemote isRemoteData={isRemoteData} />
-        )}
-      </div>
-      <div className="mt-16 bg-white rounded-lg">
-        {jobStatusError ? (
-          <div className="p-4 bg-red-50 border border-red-200 text-red-700 rounded-lg">
-            {jobStatusError}
-          </div>
-        ) : jobStatusLoading ? (
-          <div className="p-4 text-center text-gray-500">
-            Loading total of jobs status...
-          </div>
-        ) : (
-          <StatusJob StatusJobData={jobStatusData} />
-        )}
-      </div>
-      <div className="mt-16 bg-white rounded-lg">
+      <div className="mt-6 bg-white w-full">
         {latestJobsError ? (
-          <div className="p-4 bg-red-50 border border-red-200 text-red-700 rounded-lg">
+          <div className="p-4 bg-red-50 border border-red-200 text-red-700">
             {latestJobsError}
           </div>
         ) : latestJobsLoading ? (

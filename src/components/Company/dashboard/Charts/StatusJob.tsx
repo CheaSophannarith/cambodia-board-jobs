@@ -67,9 +67,9 @@ export default function StatusJob({ StatusJobData }: StatusJobProps) {
       <CardContent className="flex-1 pb-0 px-8">
         <ChartContainer
           config={chartConfig}
-          className="mx-auto h-[250px] w-full"
+          className="mx-auto h-[200px] w-full"
         >
-          <BarChart accessibilityLayer data={data} barCategoryGap="40%">
+          <BarChart accessibilityLayer data={data} barCategoryGap="30%">
             <CartesianGrid vertical={false} />
             <XAxis
               dataKey="label"

@@ -54,7 +54,7 @@ export default function PostedJobLastSixMonths({
       <CardContent>
         <ChartContainer
           config={chartConfig}
-          className="w-full h-[300px]"
+          className="w-full h-[200px]"
         >
           <LineChart
             accessibilityLayer

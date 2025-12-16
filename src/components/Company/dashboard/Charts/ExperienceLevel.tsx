@@ -57,7 +57,7 @@ export default function ExperienceLevel({
         </CardDescription>
       </CardHeader>
       <CardContent className="flex items-center justify-center px-16">
-        <ChartContainer config={chartConfig} className="h-[300px] w-full">
+        <ChartContainer config={chartConfig} className="h-[200px] w-full">
           <BarChart
             accessibilityLayer
             data={data}
