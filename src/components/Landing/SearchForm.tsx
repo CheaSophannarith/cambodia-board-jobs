@@ -1,7 +1,7 @@
 "use client";
 
 import { Input } from "@/components/ui/input";
-import { Search, MapPin } from "lucide-react";
+import { Search, MapPin, X, ChevronDown } from "lucide-react";
 import {
   Select,
   SelectContent,
@@ -22,7 +22,7 @@ export default function SearchForm({ onSearch }: SearchFormProps) {
 
   const handleSearch = () => {
     onSearch?.(title || undefined, location || undefined);
-  }
+  };
 
   return (
     <div className="bg-white px-4 py-6 md:py-8 w-full max-w-4xl mt-8 flex flex-col md:flex-row items-stretch gap-4 md:gap-3 shadow-lg">
@@ -36,10 +36,10 @@ export default function SearchForm({ onSearch }: SearchFormProps) {
           onChange={(e) => setTitle(e.target.value)}
         />
       </div>
-      <div className="flex items-center space-x-2 flex-1 min-w-0">
+      <div className="flex items-center space-x-2 flex-1 min-w-0 relative">
         <MapPin size={22} className="text-black flex-shrink-0" />
         <Select value={location} onValueChange={setLocation}>
-          <SelectTrigger className="w-full border-0 rounded-none focus:outline-none focus:ring-0 focus-visible:ring-0 bg-transparent py-4 md:py-6 border-b border-gray-300 text-lg">
+          <SelectTrigger className="w-full border-0 rounded-none focus:outline-none focus:ring-0 focus-visible:ring-0 bg-transparent py-4 md:py-6 border-b border-gray-300 text-lg [&>svg]:hidden">
             <SelectValue
               placeholder="Location"
               className="placeholder:text-lg text-gray-500"
@@ -57,8 +57,24 @@ export default function SearchForm({ onSearch }: SearchFormProps) {
             <SelectItem value="Battambang">Battambang</SelectItem>
           </SelectContent>
         </Select>
+
+        {location ? (
+          <Button
+            variant="ghost"
+            size="icon"
+            className="absolute right-2 top-1/2 -translate-y-1/2"
+            onClick={() => setLocation("")}
+          >
+            <X className="h-4 w-4" />
+          </Button>
+        ) : (
+          <ChevronDown className="absolute right-2 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400 pointer-events-none mr-1" />
+        )}
       </div>
-      <Button className="rounded-none bg-notice hover:bg-notice/90 font-bold py-4 md:py-6 flex-shrink-0 whitespace-nowrap px-6 transition-colors" onClick={handleSearch}>
+      <Button
+        className="rounded-none bg-notice hover:bg-notice/90 font-bold py-4 md:py-6 flex-shrink-0 whitespace-nowrap px-6 transition-colors"
+        onClick={handleSearch}
+      >
         Search my job
       </Button>
     </div>

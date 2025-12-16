@@ -45,7 +45,5 @@ export async function getAllJobs() {
         return job;
     }) || [];
 
-    console.log('Fetched jobs:', jobsWithPublicUrls);
-
     return jobsWithPublicUrls;
 }
