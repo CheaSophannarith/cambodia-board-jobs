@@ -15,7 +15,7 @@ export default function LandingLayout({
   return (
     <AuthProvider>
       <Header />
-      <main className="pt-24">{children}</main>
+      <main className="md:pt-20">{children}</main>
     </AuthProvider>
   );
 }

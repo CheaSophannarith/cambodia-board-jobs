@@ -242,48 +242,50 @@ export default function Job({ jobId }: JobProps) {
 
   return (
     <div className="w-full">
-      <div className="max-w-7xl mx-auto px-6 mt-6">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 mt-6">
         <div className="border border-gray-300 overflow-hidden">
-          <div className="flex gap-10 items-start p-10">
-            <div className="flex-shrink-0">
-              <div className="w-[180px] h-[180px] overflow-hidden border border-gray-300">
+          <div className="flex flex-col md:flex-row gap-6 md:gap-10 items-start p-4 sm:p-6 md:p-10">
+            <div className="flex-shrink-0 mx-auto md:mx-0">
+              <div className="w-[120px] h-[120px] sm:w-[150px] sm:h-[150px] md:w-[180px] md:h-[180px] overflow-hidden border border-gray-300">
                 <Image
                   src={job.companies.logo_url}
                   alt={job.companies.company_name}
                   width={180}
                   height={180}
-                  className="object-cover"
+                  className="object-cover w-full h-full"
                 />
               </div>
             </div>
-            <div className="flex flex-col gap-6 flex-1">
-              <div className="flex flex-col gap-2">
-                <h1 className="text-3xl font-bold text-gray-900 leading-tight">
+            <div className="flex flex-col gap-4 md:gap-6 flex-1 w-full">
+              <div className="flex flex-col gap-2 text-center md:text-left">
+                <h1 className="text-xl sm:text-2xl md:text-3xl font-bold text-gray-900 leading-tight">
                   {job.title}
                 </h1>
-                <h2 className="text-lg text-gray-600 font-medium">
+                <h2 className="text-base sm:text-lg text-gray-600 font-medium">
                   {job.companies.company_name}
                 </h2>
               </div>
-              <div className="flex items-center gap-3 flex-wrap text-sm text-gray-700">
+              <div className="flex items-center justify-center md:justify-start gap-2 sm:gap-3 flex-wrap text-xs sm:text-sm text-gray-700">
                 <span className="font-medium">{job.location}</span>
                 <span className="text-gray-400">•</span>
                 <span className="font-medium">{getSalaryText()}</span>
-                <span className="text-gray-400">•</span>
-                <span className="font-medium">0 Applications</span>
-                <span className="text-gray-400">•</span>
+                <span className="text-gray-400 hidden sm:inline">•</span>
+                <span className="font-medium hidden sm:inline">
+                  0 Applications
+                </span>
+                <span className="text-gray-400 hidden sm:inline">•</span>
                 <span className="font-medium">{getPostedDay()}</span>
               </div>
-              <div className="flex gap-6 pt-4 border-t border-gray-200">
+              <div className="flex flex-col sm:flex-row gap-3 sm:gap-6 pt-4 border-t border-gray-200">
                 <Link
                   href={`/companies/${job.companies.id}`}
-                  className="text-notice text-sm font-semibold hover:text-notice/80 transition-colors"
+                  className="text-notice text-sm font-semibold hover:text-notice/80 transition-colors text-center md:text-left"
                 >
                   Company Profile
                 </Link>
                 <Link
                   href={`/companies/${job.companies.id}`}
-                  className="text-notice text-sm font-semibold hover:text-notice/80 transition-colors"
+                  className="text-notice text-sm font-semibold hover:text-notice/80 transition-colors text-center md:text-left"
                 >
                   Jobs at {job.companies.company_name}
                   <span className="ml-2 text-gray-500">(0)</span>
@@ -293,10 +295,56 @@ export default function Job({ jobId }: JobProps) {
           </div>
         </div>
       </div>
-      <div className="max-w-7xl mx-auto px-6 mt-6 flex flex-nowrap gap-6">
-        <div className="w-3/4">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 mt-6 flex flex-col lg:flex-row gap-6">
+        {/* Sidebar for mobile/tablet - shown first */}
+        <div className="lg:hidden w-full">
+          <div className="flex flex-col gap-4 mx-auto border-notice px-4 py-6 border">
+            <div className="flex gap-2 items-center">
+              <MoveUpRight size={25} className="text-notice flex-shrink-0" />
+              <div>
+                <h1 className="text-sm font-bold">Experience</h1>
+                <p className="text-sm text-gray-600">
+                  {job.experience_level || "N/A"}
+                </p>
+              </div>
+            </div>
+            <div className="flex gap-2">
+              <Building2 size={25} className="text-notice flex-shrink-0" />
+              <div>
+                <h1 className="text-sm font-bold">Industry</h1>
+                <p className="text-sm text-gray-600">
+                  {job.job_categories?.name || "N/A"}
+                </p>
+              </div>
+            </div>
+            <div className="flex gap-2">
+              <MapPinXInside size={25} className="text-notice flex-shrink-0" />
+              <div>
+                <h1 className="text-sm font-bold">Remote</h1>
+                <p className="text-sm text-gray-600">
+                  {job.remote ? "Yes" : "No"}
+                </p>
+              </div>
+            </div>
+            <div className="flex gap-2">
+              <Clock7 size={25} className="text-notice flex-shrink-0" />
+              <div>
+                <h1 className="text-sm font-bold">Job Type</h1>
+                <p className="text-sm text-gray-600">{job.job_type || "N/A"}</p>
+              </div>
+            </div>
+          </div>
+          <Button className="rounded-none my-4 w-full bg-notice py-4 hover:bg-notice/90 font-bold transition-colors">
+            Apply Now
+          </Button>
+        </div>
+
+        {/* Main Content */}
+        <div className="w-full lg:w-3/4">
           <div className="mb-8">
-            <h1 className="text-lg font-bold mb-8">Job Description</h1>
+            <h1 className="text-base sm:text-lg font-bold mb-4 sm:mb-8">
+              Job Description
+            </h1>
             <div className="text-sm text-gray-700 leading-relaxed break-words overflow-wrap-anywhere">
               {job.description ? (
                 <div
@@ -309,7 +357,9 @@ export default function Job({ jobId }: JobProps) {
             </div>
           </div>
           <div className="mb-8">
-            <h1 className="text-lg font-bold mb-8">Job Requirements</h1>
+            <h1 className="text-base sm:text-lg font-bold mb-4 sm:mb-8">
+              Job Requirements
+            </h1>
             {job.requirements &&
             Array.isArray(job.requirements) &&
             job.requirements.length > 0 ? (
@@ -325,7 +375,9 @@ export default function Job({ jobId }: JobProps) {
             )}
           </div>
           <div className="mb-8">
-            <h1 className="text-lg font-bold mb-8">Job Benefits</h1>
+            <h1 className="text-base sm:text-lg font-bold mb-4 sm:mb-8">
+              Job Benefits
+            </h1>
             {job.benefits &&
             Array.isArray(job.benefits) &&
             job.benefits.length > 0 ? (
@@ -339,7 +391,9 @@ export default function Job({ jobId }: JobProps) {
             )}
           </div>
         </div>
-        <div className="w-1/4">
+
+        {/* Sidebar for desktop */}
+        <div className="hidden lg:block w-1/4">
           <div className="flex flex-col gap-4 mx-auto border-notice px-4 py-6 border">
             <div className="flex gap-2 items-center">
               <MoveUpRight size={25} className="text-notice" />
@@ -381,8 +435,8 @@ export default function Job({ jobId }: JobProps) {
           </Button>
         </div>
       </div>
-      <div className="max-w-7xl mx-auto px-6 pb-12 mt-2">
-        <h1 className="text-lg font-bold mb-10">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 pb-12 mt-2">
+        <h1 className="text-base sm:text-lg font-bold mb-6 sm:mb-10">
           Latest jobs of{" "}
           <span className="text-notice">{job.companies.company_name}</span>
         </h1>

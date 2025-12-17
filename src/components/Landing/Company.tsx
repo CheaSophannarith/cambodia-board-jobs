@@ -186,39 +186,39 @@ export default function Company({ comId }: CompanyProps) {
 
   return (
     <div className="w-full">
-      <div className="max-w-7xl mx-auto px-6 mt-6">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 mt-6">
         <div className="border border-gray-300 overflow-hidden">
-          <div className="flex gap-10 items-start p-10">
-            <div className="flex-shrink-0">
-              <div className="w-[180px] h-[180px] overflow-hidden border border-gray-300">
+          <div className="flex flex-col md:flex-row gap-6 md:gap-10 items-start p-4 sm:p-6 md:p-10">
+            <div className="flex-shrink-0 mx-auto md:mx-0">
+              <div className="w-[120px] h-[120px] sm:w-[150px] sm:h-[150px] md:w-[180px] md:h-[180px] overflow-hidden border border-gray-300">
                 <Image
                   src={company.logo_url || "/placeholder-company.png"}
                   alt={company.company_name}
                   width={180}
                   height={180}
-                  className="object-cover"
+                  className="object-cover w-full h-full"
                 />
               </div>
             </div>
-            <div className="flex flex-col gap-6 flex-1">
-              <div className="flex flex-col gap-2">
-                <h1 className="text-3xl font-bold text-gray-900 leading-tight">
+            <div className="flex flex-col gap-4 md:gap-6 flex-1 w-full">
+              <div className="flex flex-col gap-2 text-center md:text-left">
+                <h1 className="text-xl sm:text-2xl md:text-3xl font-bold text-gray-900 leading-tight">
                   {company.company_name}
                 </h1>
-                <h2 className="text-lg text-gray-600 font-medium">
+                <h2 className="text-base sm:text-lg text-gray-600 font-medium">
                   {company.industry || "Industry not specified"}
                 </h2>
               </div>
-              <div className="flex items-center gap-3 flex-wrap text-sm text-gray-700">
+              <div className="flex items-center justify-center md:justify-start gap-2 sm:gap-3 flex-wrap text-xs sm:text-sm text-gray-700">
                 <span className="font-medium">
                   {company.headquarters || "Headquarters not specified"}
                 </span>
                 <span className="text-gray-400">•</span>
                 <span className="font-medium">
-                  Total Jobs Available: {company.total_jobs || 0}
+                  Total Jobs: {company.total_jobs || 0}
                 </span>
               </div>
-              <div className="flex gap-6 pt-4 border-t border-gray-200">
+              <div className="flex gap-6 pt-4 border-t border-gray-200 justify-center md:justify-start">
                 <Link
                   href={`#jobs`}
                   className="text-notice text-sm font-semibold hover:text-notice/80 transition-colors"
@@ -233,10 +233,55 @@ export default function Company({ comId }: CompanyProps) {
           </div>
         </div>
       </div>
-      <div className="max-w-7xl mx-auto px-6 mt-6 flex flex-nowrap gap-6">
-        <div className="w-3/4">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 mt-6 flex flex-col lg:flex-row gap-6">
+        {/* Sidebar for mobile/tablet - shown first */}
+        <div className="lg:hidden w-full">
+          <div className="flex flex-col gap-4 mx-auto border-notice px-4 py-6 border">
+            <div className="flex gap-2 items-center">
+              <Building2 size={25} className="text-notice flex-shrink-0" />
+              <div>
+                <h1 className="text-sm font-bold">Industry</h1>
+                <p className="text-sm text-gray-600">
+                  {company.industry || "N/A"}
+                </p>
+              </div>
+            </div>
+            <div className="flex gap-2">
+              <MapPinXInside size={25} className="text-notice flex-shrink-0" />
+              <div>
+                <h1 className="text-sm font-bold">Headquarter</h1>
+                <p className="text-sm text-gray-600">
+                  {company.headquarters || "N/A"}
+                </p>
+              </div>
+            </div>
+            <div className="flex gap-2">
+              <Users size={25} className="text-notice flex-shrink-0" />
+              <div>
+                <h1 className="text-sm font-bold">Company Size</h1>
+                <p className="text-sm text-gray-600">
+                  {company.company_size || "N/A"}
+                </p>
+              </div>
+            </div>
+            <div className="flex gap-2">
+              <Briefcase size={25} className="text-notice flex-shrink-0" />
+              <div>
+                <h1 className="text-sm font-bold">Total Jobs</h1>
+                <p className="text-sm text-gray-600">
+                  {company.total_jobs || 0} positions
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Main Content */}
+        <div className="w-full lg:w-3/4">
           <div className="mb-8">
-            <h1 className="text-lg font-bold mb-8">About Company</h1>
+            <h1 className="text-base sm:text-lg font-bold mb-4 sm:mb-8">
+              About Company
+            </h1>
             <div className="text-sm text-gray-700 leading-relaxed break-words overflow-wrap-anywhere">
               {company.description ? (
                 <div
@@ -250,19 +295,21 @@ export default function Company({ comId }: CompanyProps) {
           </div>
           {company.website && (
             <div className="mb-8">
-              <h1 className="text-lg font-bold mb-4">Website</h1>
+              <h1 className="text-base sm:text-lg font-bold mb-4">Website</h1>
               <a
                 href={company.website}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="text-notice hover:text-notice/80 transition-colors text-sm"
+                className="text-notice hover:text-notice/80 transition-colors text-sm break-all"
               >
                 {company.website}
               </a>
             </div>
           )}
         </div>
-        <div className="w-1/4">
+
+        {/* Sidebar for desktop */}
+        <div className="hidden lg:block w-1/4">
           <div className="flex flex-col gap-4 mx-auto border-notice px-4 py-6 border">
             <div className="flex gap-2 items-center">
               <Building2 size={25} className="text-notice" />
@@ -303,8 +350,8 @@ export default function Company({ comId }: CompanyProps) {
           </div>
         </div>
       </div>
-      <div id="jobs" className="max-w-7xl mx-auto px-6 pb-12 mt-8">
-        <h1 className="text-lg font-bold mb-10">
+      <div id="jobs" className="max-w-7xl mx-auto px-4 sm:px-6 pb-12 mt-8">
+        <h1 className="text-base sm:text-lg font-bold mb-6 sm:mb-10">
           Jobs at <span className="text-notice">{company.company_name}</span>
         </h1>
         <div>

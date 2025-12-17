@@ -11,7 +11,7 @@ const metadata: Metadata = {
 export default function SignUp() {
   return (
     <div className="min-h-screen flex bg-background">
-      <div className="w-[45%] min-h-screen">
+      <div className="hidden md:block md:w-[45%] min-h-screen">
         <Image
           src="/login_image.png"
           alt="Cambodia Board Jobs Logo"
@@ -20,18 +20,18 @@ export default function SignUp() {
           height={800}
         />
       </div>
-      <div className="w-[55%] flex items-center justify-center">
-        <Tabs defaultValue="account" className="w-[500px]">
+      <div className="w-full md:w-[55%] flex items-center justify-center px-4 py-8">
+        <Tabs defaultValue="account" className="w-full max-w-[500px]">
           <TabsList className="w-full grid grid-cols-2">
             <TabsTrigger
               value="account"
-              className="data-[state=active]:bg-notice data-[state=active]:text-white rounded-none text-2xl py-4 px-4"
+              className="data-[state=active]:bg-notice data-[state=active]:text-white rounded-none text-base sm:text-xl md:text-2xl py-3 sm:py-4 px-2 sm:px-4"
             >
               Job Seeker
             </TabsTrigger>
             <TabsTrigger
               value="password"
-              className="data-[state=active]:bg-notice data-[state=active]:text-white rounded-none text-2xl py-4 px-4"
+              className="data-[state=active]:bg-notice data-[state=active]:text-white rounded-none text-base sm:text-xl md:text-2xl py-3 sm:py-4 px-2 sm:px-4"
             >
               Company
             </TabsTrigger>

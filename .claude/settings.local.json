@@ -5,7 +5,8 @@
       "Bash(timeout /t 2)",
       "Bash(taskkill:*)",
       "Bash(ls:*)",
-      "Bash(test -f:*)"
+      "Bash(test -f:*)",
+      "Bash(find:*)"
     ],
     "deny": [],
     "ask": []
