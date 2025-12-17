@@ -1,9 +1,10 @@
 import Company from "@/components/Landing/Company";
 
-export default function CompanyPage({ params }: { params: { id: string } }) {
+export default async function CompanyPage({ params }: { params: Promise<{ id: string }> }) {
+  const { id } = await params;
   return (
     <div className="min-h-screen">
-      <Company comId={params.id} />
+      <Company comId={id} />
     </div>
   );
 }
