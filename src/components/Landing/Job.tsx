@@ -7,7 +7,14 @@ import {
 } from "@/app/actions/landingpage/getJob";
 import Image from "next/image";
 import Link from "next/link";
-import { Building2, MapPinXInside, Clock7, MoveUpRight } from "lucide-react";
+import {
+  Building2,
+  MapPinXInside,
+  Clock7,
+  MoveUpRight,
+  Link as Website,
+  Linkedin,
+} from "lucide-react";
 import { Button } from "../ui/button";
 import JobCard from "./JobCard";
 
@@ -276,20 +283,46 @@ export default function Job({ jobId }: JobProps) {
                 <span className="text-gray-400 hidden sm:inline">•</span>
                 <span className="font-medium">{getPostedDay()}</span>
               </div>
-              <div className="flex flex-col sm:flex-row gap-3 sm:gap-6 pt-4 border-t border-gray-200">
+              <div className="flex flex-col sm:flex-row flex-wrap items-center sm:items-start gap-3 sm:gap-6 pt-4 border-t border-gray-200">
                 <Link
                   href={`/companies/${job.companies.id}`}
-                  className="text-notice text-sm font-semibold hover:text-notice/80 transition-colors text-center md:text-left"
+                  className="text-notice text-sm font-semibold hover:text-notice/80 transition-colors"
                 >
                   Company Profile
                 </Link>
-                <Link
-                  href={`/companies/${job.companies.id}`}
-                  className="text-notice text-sm font-semibold hover:text-notice/80 transition-colors text-center md:text-left"
-                >
-                  Jobs at {job.companies.company_name}
-                  <span className="ml-2 text-gray-500">(0)</span>
-                </Link>
+                <div className="flex flex-wrap items-center gap-3 sm:gap-4">
+                  <Link
+                    href={`/companies/${job.companies.id}#jobs`}
+                    className="text-notice text-sm font-semibold hover:text-notice/80 transition-colors"
+                  >
+                    Jobs at {job.companies.company_name}
+                    <span className="ml-2 text-gray-500">(0)</span>
+                  </Link>
+                  {job.companies.company_website &&
+                    job.companies.company_website.trim() !== "" && (
+                      <a
+                        href={job.companies.company_website}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="inline-flex items-center gap-1 text-notice hover:text-notice/80 transition-colors text-sm font-semibold"
+                      >
+                        <Website className="text-notice" size={16} />
+                        <span>Website</span>
+                      </a>
+                    )}
+                  {job.companies.linkedin_url &&
+                    job.companies.linkedin_url.trim() !== "" && (
+                      <a
+                        href={job.companies.linkedin_url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="inline-flex items-center gap-1 text-notice hover:text-notice/80 transition-colors text-sm font-semibold"
+                      >
+                        <Linkedin className="text-notice" size={16} />
+                        <span>LinkedIn</span>
+                      </a>
+                    )}
+                </div>
               </div>
             </div>
           </div>

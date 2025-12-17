@@ -14,7 +14,7 @@ export default function Home() {
       setTimeout(() => {
         const element = document.getElementById(targetId);
         if (element) {
-          element.scrollIntoView({ behavior: 'smooth', block: 'start' });
+          element.scrollIntoView({ behavior: "smooth", block: "start" });
         }
       }, 100); // Small delay to ensure the page has rendered
     }
@@ -25,14 +25,14 @@ export default function Home() {
       <SearchableJobSection
         heroContent={
           <>
-            <div className="space-y-2">
-              <h1 className="font-bold text-4xl md:text-5xl lg:text-6xl text-gray-800">
+            <div className="space-y-1 sm:space-y-2">
+              <h1 className="font-bold text-3xl sm:text-4xl md:text-5xl lg:text-6xl text-gray-800 leading-tight">
                 Explore
               </h1>
-              <h1 className="font-bold text-4xl md:text-5xl lg:text-6xl text-gray-800">
+              <h1 className="font-bold text-3xl sm:text-4xl md:text-5xl lg:text-6xl text-gray-800 leading-tight">
                 Exciting Jobs
               </h1>
-              <h1 className="font-bold text-4xl md:text-5xl lg:text-6xl text-notice">
+              <h1 className="font-bold text-3xl sm:text-4xl md:text-5xl lg:text-6xl text-notice leading-tight">
                 Start Your Career
               </h1>
               <Image
@@ -40,12 +40,12 @@ export default function Home() {
                 alt="victor"
                 height={8}
                 width={400}
-                className="mt-2"
+                className="mt-2 max-w-full h-auto"
               />
             </div>
-            <p className="text-gray-500 text-lg md:text-xl font-extralight max-w-2xl">
+            <p className="text-gray-500 text-base sm:text-lg md:text-xl font-light max-w-2xl leading-relaxed">
               Great platform for the job seeker that is searching
-              <br />
+              <br className="hidden sm:block" />
               new career heights and passionate about startups.
             </p>
           </>

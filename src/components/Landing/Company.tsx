@@ -5,7 +5,14 @@ import { getCompanyById } from "@/app/actions/landingpage/getCompany";
 import { getJobsByCompanyId } from "@/app/actions/landingpage/getJob";
 import Image from "next/image";
 import Link from "next/link";
-import { Building2, MapPinXInside, Users, Briefcase } from "lucide-react";
+import {
+  Building2,
+  MapPinXInside,
+  Users,
+  Briefcase,
+  Link as Website,
+  Linkedin,
+} from "lucide-react";
 import JobCard from "./JobCard";
 
 interface CompanyProps {
@@ -218,7 +225,7 @@ export default function Company({ comId }: CompanyProps) {
                   Total Jobs: {company.total_jobs || 0}
                 </span>
               </div>
-              <div className="flex gap-6 pt-4 border-t border-gray-200 justify-center md:justify-start">
+              <div className="flex flex-col sm:flex-row items-center sm:items-start gap-4 sm:gap-6 border-t border-gray-200 pt-4">
                 <Link
                   href={`#jobs`}
                   className="text-notice text-sm font-semibold hover:text-notice/80 transition-colors"
@@ -228,6 +235,28 @@ export default function Company({ comId }: CompanyProps) {
                     ({company.total_jobs || 0})
                   </span>
                 </Link>
+                {company.company_website && (
+                  <a
+                    href={company.company_website}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center gap-2 text-notice hover:text-notice/80 transition-colors text-sm font-semibold"
+                  >
+                    <Website className="text-notice" size={18} />
+                    <span>Website</span>
+                  </a>
+                )}
+                {company.linkedin_url && (
+                  <a
+                    href={company.linkedin_url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center gap-2 text-notice hover:text-notice/80 transition-colors text-sm font-semibold"
+                  >
+                    <Linkedin className="text-notice" size={18} />
+                    <span>LinkedIn</span>
+                  </a>
+                )}
               </div>
             </div>
           </div>

@@ -20,7 +20,9 @@ export async function getJobById(jobId: string) {
             companies (
                 id,
                 company_name,
-                logo_url
+                logo_url,
+                company_website,
+                linkedin_url
             ),
             job_categories (
                 id,
@@ -51,8 +53,6 @@ export async function getJobById(jobId: string) {
         };
     }
 
-    console.log('Fetched job:', jobWithPublicUrl);
-
     return jobWithPublicUrl;
 }
 
@@ -72,6 +72,8 @@ export async function getJobsByCompanyId(companyId: string, excludeJobId?: strin
             *,
             companies (
             id,
+            company_website,
+            linkedin_url,
             company_name,
             logo_url
             )
