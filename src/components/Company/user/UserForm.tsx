@@ -106,7 +106,7 @@ export default function UserForm({ onCancel, onSuccess }: UserFormProps) {
       // Validate file
       const result = userFormSchema.shape.avatar.safeParse(file);
       if (!result.success) {
-        toast.error(result.error.errors[0].message);
+        toast.error(result.error.issues[0].message);
         return;
       }
 
@@ -163,22 +163,21 @@ export default function UserForm({ onCancel, onSuccess }: UserFormProps) {
 
       const response = await createUser(formData);
 
-        if (response && !response.success) {
-            toast.error(response.message || "Failed to create user");
-            setIsLoading(false);
-            return;
+      if (response && !response.success) {
+        toast.error(response.message || "Failed to create user");
+        setIsLoading(false);
+        return;
+      }
+
+      if (response && response.success) {
+        toast.success(response.message || "User created successfully!");
+        setIsLoading(false);
+
+        // Call onSuccess callback to close dialog and refresh
+        if (onSuccess) {
+          onSuccess();
         }
-
-        if (response && response.success) {
-            toast.success(response.message || "User created successfully!");
-            setIsLoading(false);
-
-            // Call onSuccess callback to close dialog and refresh
-            if (onSuccess) {
-              onSuccess();
-            }
-        }
-
+      }
     } catch (error) {
       console.error("Submission error:", error);
       toast.error("An error occurred. Please try again.");
