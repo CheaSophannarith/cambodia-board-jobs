@@ -17,7 +17,7 @@ export default function LandingLayout({
     <AuthProvider>
       <div className="flex flex-col min-h-screen">
         <Header />
-        <main className="md:pt-20 flex-1">{children}</main>
+        <main className="flex-1">{children}</main>
         <Footer />
       </div>
     </AuthProvider>
