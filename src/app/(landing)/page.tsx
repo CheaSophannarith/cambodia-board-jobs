@@ -40,7 +40,7 @@ export default function Home() {
                 alt="victor"
                 height={8}
                 width={400}
-                className="mt-2 max-w-full h-auto"
+                className="mt-2 w-full max-w-[250px] sm:max-w-[300px] md:max-w-[350px] lg:max-w-[400px] h-auto"
               />
             </div>
             <p className="text-gray-500 text-base sm:text-lg md:text-xl font-light max-w-2xl leading-relaxed">
