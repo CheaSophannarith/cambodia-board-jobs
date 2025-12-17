@@ -29,8 +29,8 @@ export default function SearchableJobSection({
 
   return (
     <>
-      <div className="max-w-7xl mx-auto mt-0 md:mt-3 mb-0">
-        <div className="bg-[url('/mobile-responsive.png')] md:bg-[url('/Poster.png')] bg-cover bg-center min-h-screen">
+      <div className="w-full mt-0 mb-0">
+        <div className="bg-[url('/mobile-responsive.png')] md:bg-[url('/Poster.png')] bg-cover bg-center min-h-screen max-w-7xl mx-auto">
           <div className="flex flex-col justify-start items-start space-y-4 sm:space-y-6 px-2 sm:px-4 md:px-8 lg:px-12 pt-4 sm:pt-8 md:pt-8 lg:pt-12 pb-16 sm:pb-20 md:pb-4 lg:pb-8">
             {heroContent}
             <SearchForm onSearch={handleSearch} />
