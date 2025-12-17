@@ -3,7 +3,9 @@
     "allow": [
       "Bash(NUL)",
       "Bash(timeout /t 2)",
-      "Bash(taskkill:*)"
+      "Bash(taskkill:*)",
+      "Bash(ls:*)",
+      "Bash(test -f:*)"
     ],
     "deny": [],
     "ask": []

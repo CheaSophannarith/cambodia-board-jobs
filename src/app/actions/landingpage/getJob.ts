@@ -66,7 +66,7 @@ export async function getJobsByCompanyId(companyId: string, excludeJobId?: strin
 
     const supabase = await createClient()
 
-    const { data: jobs, error } = await supabase
+    let query = supabase
         .from('jobs')
         .select(`
             *,
@@ -76,8 +76,14 @@ export async function getJobsByCompanyId(companyId: string, excludeJobId?: strin
             logo_url
             )
         `)
-        .eq('company_id', companyId)
-        .neq('id', excludeJobId || '')
+        .eq('company_id', companyId);
+
+    // Only exclude a specific job if excludeJobId is provided
+    if (excludeJobId) {
+        query = query.neq('id', excludeJobId);
+    }
+
+    const { data: jobs, error } = await query
         .order('created_at', { ascending: false })
         .limit(6);
 

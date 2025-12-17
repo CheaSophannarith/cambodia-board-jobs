@@ -25,11 +25,14 @@ export default function Header() {
     router.refresh();
   };
 
-  const handleSmoothScroll = (e: React.MouseEvent<HTMLAnchorElement>, targetId: string) => {
+  const handleSmoothScroll = (
+    e: React.MouseEvent<HTMLAnchorElement>,
+    targetId: string
+  ) => {
     e.preventDefault();
     const element = document.getElementById(targetId);
     if (element) {
-      element.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      element.scrollIntoView({ behavior: "smooth", block: "start" });
     } else {
       // If element doesn't exist, navigate to home page with hash
       router.push(`/#${targetId}`);
@@ -54,13 +57,13 @@ export default function Header() {
           <nav className="hidden md:flex items-center space-x-6">
             <Link
               href="#find-jobs"
-              onClick={(e) => handleSmoothScroll(e, 'find-jobs')}
+              onClick={(e) => handleSmoothScroll(e, "find-jobs")}
               className="font-medium text-base text-gray-600 hover:text-notice transition"
             >
               Find Jobs
             </Link>
             <Link
-              href="#"
+              href="/companies"
               className="font-medium text-base text-gray-600 hover:text-notice transition"
             >
               Browse Companies
