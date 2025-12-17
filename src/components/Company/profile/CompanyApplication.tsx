@@ -193,7 +193,7 @@ export default function CompanyApplication({
       // Validate file
       const result = companyApplicationSchema.shape.avatar.safeParse(file);
       if (!result.success) {
-        toast.error(result.error.errors[0].message);
+        toast.error(result.error.issues[0].message);
         return;
       }
 
@@ -212,7 +212,7 @@ export default function CompanyApplication({
       // Validate file
       const result = companyApplicationSchema.shape.logo.safeParse(file);
       if (!result.success) {
-        toast.error(result.error.errors[0].message);
+        toast.error(result.error.issues[0].message);
         return;
       }
 
