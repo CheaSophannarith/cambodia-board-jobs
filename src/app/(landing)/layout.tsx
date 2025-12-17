@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import Header from "../../components/Landing/Header";
+import Footer from "../../components/Landing/Footer";
 import { AuthProvider } from "@/contexts/AuthContext";
 
 export const metadata: Metadata = {
@@ -14,8 +15,11 @@ export default function LandingLayout({
 }>) {
   return (
     <AuthProvider>
-      <Header />
-      <main className="md:pt-20">{children}</main>
+      <div className="flex flex-col min-h-screen">
+        <Header />
+        <main className="md:pt-20 flex-1">{children}</main>
+        <Footer />
+      </div>
     </AuthProvider>
   );
 }
