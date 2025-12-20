@@ -15,8 +15,9 @@ import {
   Link as Website,
   Linkedin,
 } from "lucide-react";
-import { Button } from "../ui/button";
 import JobCard from "./JobCard";
+import { useRouter } from "next/navigation";
+import { toast } from "sonner";
 
 interface JobProps {
   jobId: string;
@@ -30,6 +31,8 @@ export default function Job({ jobId }: JobProps) {
   const [jobsByCompany, setJobsByCompany] = useState<any[]>([]);
   const [companyJobsError, setCompanyJobsError] = useState<Error | null>(null);
   const [loadingJobsByCompany, setLoadingJobsByCompany] = useState(false);
+
+  const router = useRouter();
 
   useEffect(() => {
     // Scroll to top when component mounts
@@ -85,6 +88,23 @@ export default function Job({ jobId }: JobProps) {
     if (diffDays === 0) return "Today";
     if (diffDays === 1) return "1 day ago";
     return `${diffDays} days ago`;
+  };
+
+  const handleApplyNow = () => {
+    // Check if application deadline has passed
+    if (job?.application_deadline) {
+      const deadline = new Date(job.application_deadline);
+      const today = new Date();
+      today.setHours(0, 0, 0, 0); // Reset time to start of day for fair comparison
+
+      if (deadline < today) {
+        toast.error("Application deadline has passed for this job");
+        return;
+      }
+    }
+
+    // If no deadline or deadline is valid, navigate to application page
+    router.push(`/jobs/${jobId}/application`);
   };
 
   if (loading) {
@@ -367,9 +387,12 @@ export default function Job({ jobId }: JobProps) {
               </div>
             </div>
           </div>
-          <Button className="rounded-none my-4 w-full bg-notice py-4 hover:bg-notice/90 font-bold transition-colors">
+          <button
+            onClick={handleApplyNow}
+            className="rounded-none my-4 w-full bg-notice py-4 hover:bg-notice/90 font-bold transition-colors flex items-center justify-center text-white"
+          >
             Apply Now
-          </Button>
+          </button>
         </div>
 
         {/* Main Content */}
@@ -463,9 +486,12 @@ export default function Job({ jobId }: JobProps) {
               </div>
             </div>
           </div>
-          <Button className="rounded-none my-4 w-full bg-notice py-4 hover:bg-notice/90 font-bold transition-colors">
+          <button
+            onClick={handleApplyNow}
+            className="rounded-none my-4 w-full bg-notice py-4 hover:bg-notice/90 font-bold transition-colors flex items-center justify-center text-white"
+          >
             Apply Now
-          </Button>
+          </button>
         </div>
       </div>
       <div className="max-w-7xl mx-auto px-4 sm:px-6 pb-12 mt-2">
