@@ -33,7 +33,7 @@ type NavigationItem = {
 const items: NavigationItem[] = [
   { title: "Home", href: "/", icon: Home },
   { title: "Profile", href: "/profile", icon: User },
-  { title: "My Applications", href: "/applications", icon: FileText },
+  { title: "My Applications", href: "/profile/applications", icon: FileText },
   { title: "Change Password", href: "/change-password", icon: Lock },
 ];
 
