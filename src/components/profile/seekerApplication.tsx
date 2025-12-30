@@ -189,8 +189,8 @@ export default function SeekerApplication({
   };
 
   return (
-    <div className="flex min-h-screen items-center justify-center px-4">
-      <div className="mx-auto max-w-4xl w-full">
+    <div className="flex min-h-screen items-center justify-center px-4 lg:px-8">
+      <div className="mx-auto w-full" style={{ maxWidth: '1400px' }}>
         <h1 className="text-4xl font-bold text-center mt-12 mb-8 text-notice uppercase">
           Profile as {userType}
         </h1>

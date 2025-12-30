@@ -25,15 +25,16 @@ export async function createProfile(formData: FormData) {
 
     if (avatarFile && avatarFile.size > 0) {
         const fileExt = avatarFile.name.split('.').pop();
-        const fileName = `${user.id}/avatar.${fileExt}`;
-        const filePath = `${fileName}`;
+        const fileName = `${user.id}-${Date.now()}.${fileExt}`;
+        const filePath = `avatars/${fileName}`;
 
-        // Upload with upsert to automatically replace existing file
+        // Upload to profiles bucket
         const { error: uploadError } = await supabase.storage
-            .from('avatars')
+            .from('profiles')
             .upload(filePath, avatarFile, {
                 upsert: true,
-                contentType: avatarFile.type
+                contentType: avatarFile.type,
+                cacheControl: '3600'
             });
 
         if (uploadError) {
@@ -41,7 +42,12 @@ export async function createProfile(formData: FormData) {
             return { success: false, message: `Error uploading avatar: ${uploadError.message}` };
         }
 
-        avatarUrl = filePath;
+        // Get public URL
+        const { data: { publicUrl } } = supabase.storage
+            .from('profiles')
+            .getPublicUrl(filePath);
+
+        avatarUrl = publicUrl;
     }
 
     const { error } = await supabase.from('profiles').upsert({

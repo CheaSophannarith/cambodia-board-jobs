@@ -112,9 +112,24 @@ export default function Application({ jobId }: { jobId: string }) {
   useEffect(() => {
     async function fetchUserProfile() {
       if (user) {
-        const profileData = await getDetailUser(user.id);
-        setProfile(profileData);
-        console.log("Fetched user profile:", profileData);
+        try {
+          console.log("Fetching profile for user:", user.id);
+          const profileData = await getDetailUser(user.id);
+          console.log("Fetched user profile:", profileData);
+
+          if (!profileData) {
+            console.error("No profile data returned");
+            toast.error("Failed to load profile. Please complete your profile first.");
+            return;
+          }
+
+          setProfile(profileData);
+        } catch (error) {
+          console.error("Error fetching profile:", error);
+          toast.error("Failed to load profile data");
+        }
+      } else {
+        console.log("No user authenticated");
       }
     }
     fetchUserProfile();
