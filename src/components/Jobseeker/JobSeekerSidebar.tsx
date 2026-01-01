@@ -14,13 +14,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { usePathname, useRouter } from "next/navigation";
 import { useAuth } from "@/contexts/AuthContext";
-import {
-  Home,
-  User,
-  FileText,
-  Lock,
-  LogOut,
-} from "lucide-react";
+import { Home, User, FileText, Lock, LogOut } from "lucide-react";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
 
@@ -34,7 +28,7 @@ const items: NavigationItem[] = [
   { title: "Home", href: "/", icon: Home },
   { title: "Profile", href: "/profile", icon: User },
   { title: "My Applications", href: "/profile/applications", icon: FileText },
-  { title: "Change Password", href: "/change-password", icon: Lock },
+  { title: "Change Password", href: "/profile/change-password", icon: Lock },
 ];
 
 export function JobSeekerSidebar() {

@@ -6,7 +6,8 @@
       "Bash(taskkill:*)",
       "Bash(ls:*)",
       "Bash(test -f:*)",
-      "Bash(find:*)"
+      "Bash(find:*)",
+      "Bash(npx next lint:*)"
     ],
     "deny": [],
     "ask": []
