@@ -7,7 +7,8 @@
       "Bash(ls:*)",
       "Bash(test -f:*)",
       "Bash(find:*)",
-      "Bash(npx next lint:*)"
+      "Bash(npx next lint:*)",
+      "Bash(npx shadcn@latest add:*)"
     ],
     "deny": [],
     "ask": []

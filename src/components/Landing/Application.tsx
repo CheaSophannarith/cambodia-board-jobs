@@ -86,13 +86,29 @@ export default function Application({ jobId }: { jobId: string }) {
       formData.append("coverLetter", validatedData.coverLetter);
       formData.append("resumeFile", resumeFile);
 
-      await createApplication(formData);
+      const result = await createApplication(formData);
 
-      toast.success("Application submitted successfully!");
+      if (result.success) {
+        toast.success(result.message);
 
-      // Redirect to success page
-      const jobTitle = encodeURIComponent(job?.title || "this position");
-      router.push(`/jobs/${jobId}/application/success?jobTitle=${jobTitle}`);
+        // Redirect to success page
+        const jobTitle = encodeURIComponent(job?.title || "this position");
+        router.push(`/jobs/${jobId}/application/success?jobTitle=${jobTitle}`);
+      } else {
+        // Handle different error cases
+        if (result.alreadyApplied) {
+          toast.warning(result.message, {
+            duration: 5000,
+            action: {
+              label: "View Applications",
+              onClick: () => router.push("/profile/applications"),
+            },
+          });
+        } else {
+          toast.error(result.message);
+        }
+        setIsLoading(false);
+      }
     } catch (error) {
       if (error instanceof z.ZodError) {
         const fieldErrors: { coverLetter?: string; resumeFile?: string } = {};
@@ -103,8 +119,9 @@ export default function Application({ jobId }: { jobId: string }) {
         });
         setErrors(fieldErrors);
         toast.error("Please fix the errors in the form");
+      } else {
+        toast.error("An unexpected error occurred. Please try again.");
       }
-    } finally {
       setIsLoading(false);
     }
   };
@@ -119,7 +136,9 @@ export default function Application({ jobId }: { jobId: string }) {
 
           if (!profileData) {
             console.error("No profile data returned");
-            toast.error("Failed to load profile. Please complete your profile first.");
+            toast.error(
+              "Failed to load profile. Please complete your profile first."
+            );
             return;
           }
 
@@ -139,7 +158,10 @@ export default function Application({ jobId }: { jobId: string }) {
     <div className="min-h-screen bg-gray-50">
       {/* Fixed Header */}
       <div className="mx-auto max-w-7xl w-full px-4 sm:px-6 lg:px-8 pt-4 sm:pt-6 lg:pt-8">
-        <form onSubmit={handleSubmit} className="space-y-4 sm:space-y-6 lg:space-y-8">
+        <form
+          onSubmit={handleSubmit}
+          className="space-y-4 sm:space-y-6 lg:space-y-8"
+        >
           {/* Basic Information Section */}
           <div className="bg-white p-4 sm:p-6 lg:p-8 border border-gray-200 shadow-sm">
             <div className="flex flex-col sm:flex-row items-center sm:items-start gap-4 sm:gap-6 mb-6 sm:mb-8">
@@ -172,8 +194,9 @@ export default function Application({ jobId }: { jobId: string }) {
             <div className="space-y-4 sm:space-y-6">
               <div className="bg-blue-50 border-l-4 border-blue-400 p-3 sm:p-4">
                 <p className="font-light text-gray-600 text-xs sm:text-sm">
-                  <span className="text-blue-600 font-semibold">Note:</span> Some fields are pre-filled from
-                  your profile and cannot be changed here
+                  <span className="text-blue-600 font-semibold">Note:</span>{" "}
+                  Some fields are pre-filled from your profile and cannot be
+                  changed here
                 </p>
               </div>
 
@@ -307,7 +330,8 @@ export default function Application({ jobId }: { jobId: string }) {
                 </div>
                 {resumeFile && (
                   <p className="text-xs sm:text-sm text-gray-600 mt-2">
-                    Selected: <span className="font-medium">{resumeFile.name}</span> (
+                    Selected:{" "}
+                    <span className="font-medium">{resumeFile.name}</span> (
                     {(resumeFile.size / 1024 / 1024).toFixed(2)} MB)
                   </p>
                 )}

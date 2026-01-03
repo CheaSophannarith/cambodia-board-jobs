@@ -6,7 +6,13 @@ import { createClient } from '@/utils/supabase/server'
 
 //create application
 
-export async function createApplication(formData: FormData) {
+type ApplicationResult = {
+    success: boolean;
+    message: string;
+    alreadyApplied?: boolean;
+}
+
+export async function createApplication(formData: FormData): Promise<ApplicationResult> {
 
     const supabase = await createClient();
 
@@ -32,6 +38,22 @@ export async function createApplication(formData: FormData) {
 
     // Use UUID from profile
     const jobseekerId = profile.id;
+
+    // Check if user has already applied for this job
+    const { data: existingApplication } = await supabase
+        .from('applications')
+        .select('id')
+        .eq('job_id', jobId)
+        .eq('job_seeker_id', jobseekerId)
+        .single();
+
+    if (existingApplication) {
+        return {
+            success: false,
+            message: 'You have already applied for this job. Please check your applications page.',
+            alreadyApplied: true
+        };
+    }
 
     // Upload resume file to Supabase Storage
     const { data: uploadData, error: uploadError } = await supabase.storage
@@ -62,27 +84,43 @@ export async function createApplication(formData: FormData) {
 
     if (insertError || !applicationData) {
         console.error('Application insert error:', insertError);
-        throw new Error(insertError?.message || 'Failed to submit application. Please try again.');
+
+        // Check if it's a duplicate application error
+        if (insertError?.code === '23505') {
+            return {
+                success: false,
+                message: 'You have already applied for this job. Please check your applications page.',
+                alreadyApplied: true
+            };
+        }
+
+        return {
+            success: false,
+            message: insertError?.message || 'Failed to submit application. Please try again.'
+        };
     }
 
     const applicationId = applicationData.id;
 
-    const companyId = await supabase
+    const { data: jobData, error: jobError } = await supabase
         .from('jobs')
         .select('company_id')
         .eq('id', jobId)
-        .single()
-        .then(({ data, error }) => {
-            if (error || !data) {
-                throw new Error('Job not found.');
-            }
-            return data.company_id;
-        });
+        .single();
+
+    if (jobError || !jobData) {
+        console.error('Job fetch error:', jobError);
+        return {
+            success: false,
+            message: 'Failed to find job details. Please try again.'
+        };
+    }
 
     const { error: notificationError } = await supabase
         .from('notifications')
         .insert({
-            company_id: companyId,
+            company_id: jobData.company_id,
+            title: 'New Job Application',
             type: 'application_received',
             message: `New application received from ${profile.full_name}`,
             is_read: false,
@@ -90,4 +128,14 @@ export async function createApplication(formData: FormData) {
             related_application_id: applicationId
         });
 
+    if (notificationError) {
+        console.error('Notification insert error:', notificationError);
+    }
+
+    revalidatePath('/profile/applications');
+
+    return {
+        success: true,
+        message: 'Application submitted successfully!'
+    };
 }

@@ -4,6 +4,8 @@ import { ApplicationWithJob } from "@/app/actions/application/getUserApplication
 import DataTable, { Column } from "@/components/Company/DataTable";
 import { FileText, ExternalLink, Building2, Calendar } from "lucide-react";
 import Link from "next/link";
+import { createClient } from "@/utils/supabase/client";
+import { useState, useEffect } from "react";
 
 interface ApplicationsListProps {
   applications: ApplicationWithJob[];
@@ -19,6 +21,32 @@ const statusColors: Record<string, string> = {
 export default function ApplicationsList({
   applications,
 }: ApplicationsListProps) {
+  const supabase = createClient();
+  const [resumeUrls, setResumeUrls] = useState<Record<string, string>>({});
+
+  useEffect(() => {
+    // Generate signed URLs for all resumes (valid for 1 hour)
+    const loadResumeUrls = async () => {
+      const urls: Record<string, string> = {};
+
+      for (const app of applications) {
+        if (app.resume_url) {
+          const { data, error } = await supabase.storage
+            .from('resumes')
+            .createSignedUrl(app.resume_url, 3600); // 1 hour expiry
+
+          if (data?.signedUrl && !error) {
+            urls[app.id] = data.signedUrl;
+          }
+        }
+      }
+
+      setResumeUrls(urls);
+    };
+
+    loadResumeUrls();
+  }, [applications, supabase]);
+
   // Desktop table columns
   const columns: Column<ApplicationWithJob>[] = [
     {
@@ -66,9 +94,9 @@ export default function ApplicationsList({
       header: "Resume",
       render: (app) => (
         <div className="flex gap-2">
-          {app.resume_url ? (
+          {resumeUrls[app.id] ? (
             <a
-              href={app.resume_url}
+              href={resumeUrls[app.id]}
               target="_blank"
               rel="noopener noreferrer"
               className="flex items-center gap-1 text-notice hover:text-notice/80 text-sm font-medium"
@@ -76,6 +104,11 @@ export default function ApplicationsList({
               <FileText className="w-4 h-4" />
               View
             </a>
+          ) : app.resume_url ? (
+            <span className="text-gray-400 text-sm flex items-center gap-1">
+              <FileText className="w-4 h-4" />
+              Loading...
+            </span>
           ) : (
             <span className="text-gray-400 text-sm">No resume</span>
           )}
@@ -128,13 +161,26 @@ export default function ApplicationsList({
         </span>
       </div>
 
-      <Link
-        href={`/jobs/${app.job_id}`}
-        className="flex items-center justify-center gap-1.5 w-full py-2.5 bg-notice text-white text-sm font-medium hover:bg-notice/90 transition-colors"
-      >
-        <ExternalLink className="w-4 h-4" />
-        View Job Details
-      </Link>
+      <div className="flex flex-col gap-2">
+        {resumeUrls[app.id] && (
+          <a
+            href={resumeUrls[app.id]}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="flex items-center justify-center gap-1.5 w-full py-2.5 border border-notice text-notice text-sm font-medium hover:bg-notice hover:text-white transition-colors"
+          >
+            <FileText className="w-4 h-4" />
+            View Resume
+          </a>
+        )}
+        <Link
+          href={`/jobs/${app.job_id}`}
+          className="flex items-center justify-center gap-1.5 w-full py-2.5 bg-notice text-white text-sm font-medium hover:bg-notice/90 transition-colors"
+        >
+          <ExternalLink className="w-4 h-4" />
+          View Job Details
+        </Link>
+      </div>
     </div>
   );
 
