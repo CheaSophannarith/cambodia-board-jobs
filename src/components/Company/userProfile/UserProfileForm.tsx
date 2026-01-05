@@ -16,6 +16,7 @@ import { createClient } from "@/utils/supabase/client";
 import { Eye, EyeOff, Link } from "lucide-react";
 import { logout } from "@/app/actions/auth/auth";
 import { updateUserProfile } from "@/app/actions/profile/userProfile/userProfile";
+import { useRouter } from "next/navigation";
 
 const locations = [
   "Phnom Penh",
@@ -87,6 +88,7 @@ interface UserDetailProps {
 type FormErrors = Partial<Record<keyof z.infer<typeof userFormSchema>, string>>;
 
 export default function UserDetail({ userProfile }: UserDetailProps) {
+  const router = useRouter();
   const supabase = createClient();
 
   const [name, setName] = useState(userProfile.full_name || "");

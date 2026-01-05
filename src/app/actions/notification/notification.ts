@@ -14,6 +14,7 @@ export async function getUnreadNotificationsCount(companyId: number) {
         .from('notifications')
         .select('*', { count: 'exact', head: true })
         .eq('company_id', companyId)
+        .eq('is_read', false)
         .gte('created_at', oneMonthAgo.toISOString())
 
     if (error) {
@@ -33,7 +34,7 @@ export async function getAllNotifications(companyId: number) {
 
     const { data, error } = await supabase
         .from('notifications')
-        .select('*')
+        .select('id, message, title, related_application_id, is_read, created_at')
         .eq('company_id', companyId)
         .gte('created_at', oneMonthAgo.toISOString())
         .order('created_at', { ascending: false })
@@ -74,6 +75,23 @@ export async function markAllNotificationsAsRead(companyId: number) {
 
     if (error) {
         console.error('Error marking all notifications as read:', error)
+        return { success: false, error: error.message }
+    }
+
+    revalidatePath('/notifications')
+    return { success: true }
+}
+
+export async function deleteNotification(notificationId: number) {
+    const supabase = await createClient()
+
+    const { error } = await supabase
+        .from('notifications')
+        .delete()
+        .eq('id', notificationId)
+
+    if (error) {
+        console.error('Error deleting notification:', error)
         return { success: false, error: error.message }
     }
 

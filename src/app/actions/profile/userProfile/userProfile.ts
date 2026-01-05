@@ -111,19 +111,40 @@ export async function updateUserProfile(userId: string, formData: FormData) {
         avatarUrl = filePath;
     }
 
-    // Update email if changed
+    // Update email, full name, and/or password if changed
     if (email || fullName || password) {
-        const { error: emailError } = await serviceClient.auth.admin.updateUserById(userId, {
-            email,
-            password: password || undefined,
+        const updateData: any = {
             user_metadata: {
                 display_name: fullName,
             },
-        });
+        };
+
+        // Only update email if it's provided and different
+        if (email) {
+            updateData.email = email;
+        }
+
+        // Only update password if it's provided
+        if (password) {
+            updateData.password = password;
+        }
+
+        const { error: emailError } = await serviceClient.auth.admin.updateUserById(userId, updateData);
 
         if (emailError) {
-            console.error('Error updating email:', emailError);
-            return { success: false, message: `Error updating email: ${emailError.message}` };
+            console.error('Error updating user auth data:', emailError);
+            return { success: false, message: `Error updating user auth data: ${emailError.message}` };
+        }
+
+        // If password was updated, we need to refresh the session
+        if (password) {
+            // Sign out and require re-login for security
+            await supabase.auth.signOut();
+            return {
+                success: true,
+                message: 'Password updated successfully. Please log in again with your new password.',
+                requireLogin: true
+            };
         }
     }
 
