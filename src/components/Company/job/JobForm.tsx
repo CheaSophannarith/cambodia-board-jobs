@@ -126,25 +126,33 @@ export default function JobForm() {
   // Fetch categories from database
   useEffect(() => {
     const fetchCategories = async () => {
-      // Check if categories are cached in sessionStorage
-      const cachedCategories = sessionStorage.getItem("job_categories");
-      const cacheTimestamp = sessionStorage.getItem("job_categories_timestamp");
-      const cacheExpiry = 5 * 60 * 1000; // 5 minutes
-
-      // Use cached data if available and not expired
-      if (
-        cachedCategories &&
-        cacheTimestamp &&
-        Date.now() - parseInt(cacheTimestamp) < cacheExpiry
-      ) {
-        setCategories(JSON.parse(cachedCategories));
-        setLoadingCategories(false);
-        return;
-      }
-
       setLoadingCategories(true);
 
       try {
+        // Check if categories are cached in sessionStorage
+        const cachedCategories = sessionStorage.getItem("job_categories");
+        const cacheTimestamp = sessionStorage.getItem("job_categories_timestamp");
+        const cacheExpiry = 5 * 60 * 1000; // 5 minutes
+
+        // Use cached data if available and not expired
+        if (
+          cachedCategories &&
+          cacheTimestamp &&
+          Date.now() - parseInt(cacheTimestamp) < cacheExpiry
+        ) {
+          try {
+            const parsedCategories = JSON.parse(cachedCategories);
+            setCategories(parsedCategories);
+            setLoadingCategories(false);
+            return;
+          } catch (parseError) {
+            console.error("Error parsing cached categories:", parseError);
+            // Clear corrupted cache and continue to fetch
+            sessionStorage.removeItem("job_categories");
+            sessionStorage.removeItem("job_categories_timestamp");
+          }
+        }
+
         const supabase = createClient();
 
         const { data, error } = await supabase

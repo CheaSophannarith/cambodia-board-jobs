@@ -195,16 +195,15 @@ export function Header() {
                         <p className="text-xs text-gray-500 flex items-center">
                           <span className="mr-1">📅</span>
                           <span suppressHydrationWarning>
-                            {new Date(notification.created_at).toLocaleDateString(
-                              "en-US",
-                              {
-                                month: "short",
-                                day: "numeric",
-                                year: "numeric",
-                                hour: "2-digit",
-                                minute: "2-digit",
-                              }
-                            )}
+                            {new Date(
+                              notification.created_at
+                            ).toLocaleDateString("en-US", {
+                              month: "short",
+                              day: "numeric",
+                              year: "numeric",
+                              hour: "2-digit",
+                              minute: "2-digit",
+                            })}
                           </span>
                         </p>
                       </div>
@@ -227,6 +226,11 @@ export function Header() {
           <Link href="/create-job">
             <Button className="text-white bg-notice py-4 px-3 rounded-none hover:bg-notice/80">
               + Post a job
+            </Button>
+          </Link>
+          <Link href="/subscription">
+            <Button className="text-notice border-1 border-notice bg-white py-4 px-3 rounded-none hover:text-notice/80 hover:bg-white hover:border-notice/80">
+              Subscriptions
             </Button>
           </Link>
         </div>

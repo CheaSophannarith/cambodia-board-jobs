@@ -48,6 +48,18 @@ export async function createJob(formData: FormData) {
 
     const companyId = memberData.company_id
 
+    // Get company data to check total_job count
+    const { data: companyData, error: companyError } = await supabase
+        .from('companies')
+        .select('total_job')
+        .eq('id', companyId)
+        .single()
+
+    if (companyError || !companyData) {
+        console.error('Error fetching company:', companyError)
+        return { success: false, message: 'Company not found.' }
+    }
+
     // Extract form data
     const title = formData.get('title') as string
     const categoryId = formData.get('category_id') as string
@@ -120,6 +132,20 @@ export async function createJob(formData: FormData) {
     if (jobError) {
         console.error('Error creating job:', jobError)
         return { success: false, message: `Error creating job: ${jobError.message}` }
+    }
+
+    // Update total_job count if < 3 or null
+    const currentTotalJob = companyData.total_job ?? 0
+    if (currentTotalJob < 3) {
+        const { error: updateError } = await supabase
+            .from('companies')
+            .update({ total_job: currentTotalJob + 1 })
+            .eq('id', companyId)
+
+        if (updateError) {
+            console.error('Error updating total_job:', updateError)
+            // Don't fail the job creation if the counter update fails
+        }
     }
 
     // Revalidate the job list page to show the new job
