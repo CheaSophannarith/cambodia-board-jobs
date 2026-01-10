@@ -48,16 +48,36 @@ export async function createJob(formData: FormData) {
 
     const companyId = memberData.company_id
 
-    // Get company data to check total_job count
-    const { data: companyData, error: companyError } = await supabase
-        .from('companies')
-        .select('total_job')
-        .eq('id', companyId)
+    // Get active subscription to verify job posting is allowed
+    const { data: subscriptionData, error: subscriptionError } = await supabase
+        .from('subscriptions')
+        .select('id, plan_type, job_posts_limit, job_posts_used, end_date')
+        .eq('company_id', companyId)
+        .eq('is_active', true)
+        .order('created_at', { ascending: false })
+        .limit(1)
         .single()
 
-    if (companyError || !companyData) {
-        console.error('Error fetching company:', companyError)
-        return { success: false, message: 'Company not found.' }
+    if (subscriptionError || !subscriptionData) {
+        console.error('Error fetching subscription:', subscriptionError)
+        return { success: false, message: 'No active subscription found. Please contact support.' }
+    }
+
+    // Check if subscription has expired
+    if (subscriptionData.end_date) {
+        const now = new Date()
+        const endDate = new Date(subscriptionData.end_date)
+        if (now > endDate) {
+            return { success: false, message: 'Your subscription has expired. Please renew to continue posting jobs.' }
+        }
+    }
+
+    // Check if job posting limit has been reached
+    const jobsUsed = subscriptionData.job_posts_used ?? 0
+    const jobsLimit = subscriptionData.job_posts_limit ?? 0
+
+    if (jobsUsed >= jobsLimit) {
+        return { success: false, message: `You have reached your job posting limit (${jobsLimit} jobs). Please upgrade your subscription.` }
     }
 
     // Extract form data
@@ -134,18 +154,16 @@ export async function createJob(formData: FormData) {
         return { success: false, message: `Error creating job: ${jobError.message}` }
     }
 
-    // Update total_job count if < 3 or null
-    const currentTotalJob = companyData.total_job ?? 0
-    if (currentTotalJob < 3) {
-        const { error: updateError } = await supabase
-            .from('companies')
-            .update({ total_job: currentTotalJob + 1 })
-            .eq('id', companyId)
+    // Increment job_posts_used in the subscription
+    const { error: updateError } = await supabase
+        .from('subscriptions')
+        .update({ job_posts_used: jobsUsed + 1 })
+        .eq('id', subscriptionData.id)
 
-        if (updateError) {
-            console.error('Error updating total_job:', updateError)
-            // Don't fail the job creation if the counter update fails
-        }
+    if (updateError) {
+        console.error('Error updating subscription job count:', updateError)
+        // Don't fail the job creation if the counter update fails
+        // But log it for debugging
     }
 
     // Revalidate the job list page to show the new job

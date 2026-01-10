@@ -35,23 +35,53 @@ export async function checkJobLimit() {
         return { canCreate: false, reason: 'no_company' }
     }
 
-    // Get company data to check total_job count
-    const { data: companyData, error: companyError } = await supabase
-        .from('companies')
-        .select('total_job')
-        .eq('id', memberData.company_id)
+    // Get active subscription to check job posting limit
+    const { data: subscriptionData, error: subscriptionError } = await supabase
+        .from('subscriptions')
+        .select('plan_type, job_posts_limit, job_posts_used, end_date')
+        .eq('company_id', memberData.company_id)
+        .eq('is_active', true)
+        .order('created_at', { ascending: false })
+        .limit(1)
         .single()
 
-    if (companyError || !companyData) {
-        return { canCreate: false, reason: 'company_not_found' }
+    if (subscriptionError || !subscriptionData) {
+        return { canCreate: false, reason: 'no_subscription' }
     }
 
-    // Check if company has reached the free job limit (3 jobs)
-    const totalJobs = companyData.total_job ?? 0
-    if (totalJobs >= 3) {
-        return { canCreate: false, reason: 'limit_reached', totalJobs }
+    // Check if subscription has expired
+    if (subscriptionData.end_date) {
+        const now = new Date()
+        const endDate = new Date(subscriptionData.end_date)
+        if (now > endDate) {
+            return {
+                canCreate: false,
+                reason: 'subscription_expired',
+                planType: subscriptionData.plan_type
+            }
+        }
+    }
+
+    // Check if job posting limit has been reached
+    const jobsUsed = subscriptionData.job_posts_used ?? 0
+    const jobsLimit = subscriptionData.job_posts_limit ?? 0
+
+    if (jobsUsed >= jobsLimit) {
+        return {
+            canCreate: false,
+            reason: 'limit_reached',
+            planType: subscriptionData.plan_type,
+            jobsUsed,
+            jobsLimit
+        }
     }
 
     // All checks passed
-    return { canCreate: true, totalJobs }
+    return {
+        canCreate: true,
+        planType: subscriptionData.plan_type,
+        jobsUsed,
+        jobsLimit,
+        remainingJobs: jobsLimit - jobsUsed
+    }
 }

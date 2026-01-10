@@ -142,6 +142,23 @@ export async function createCompanyProfile(formData: FormData) {
         };
     }
 
+    // Create default free subscription for the company
+    // Note: There's also a database trigger that does this, but we do it here as a fallback
+    const { error: subscriptionError } = await supabase.from('subscriptions').insert({
+        company_id: companyData.id,
+        plan_type: 'free',
+        job_posts_limit: 3,
+        job_posts_used: 0,
+        is_active: true,
+    });
+
+    if (subscriptionError) {
+        // Log error but don't fail - the trigger should handle it
+        console.error('Error creating default subscription (trigger should handle this):', subscriptionError);
+    } else {
+        console.log('✅ Created default free subscription for company');
+    }
+
     console.log('✅ Successfully created company and added user as admin');
 
     revalidatePath('/');

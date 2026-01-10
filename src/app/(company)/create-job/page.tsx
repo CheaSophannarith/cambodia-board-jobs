@@ -15,7 +15,12 @@ export default async function CreateJobPage() {
       case 'no_company':
       case 'company_not_found':
         redirect('/company-profile');
+      case 'no_subscription':
+        // Should not happen with auto-creation, but redirect to subscription page
+        redirect('/subscription');
+      case 'subscription_expired':
       case 'limit_reached':
+        // Redirect to subscription page to upgrade
         redirect('/subscription');
       default:
         redirect('/');
