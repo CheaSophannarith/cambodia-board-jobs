@@ -12,7 +12,8 @@ import {
   getJobStatusDistribution,
   getLatestJobs
 } from "@/app/actions/dashboard/dashboard";
-import { use, useEffect, useState } from "react";
+import { useEffect, useState } from "react";
+import { useSearchParams } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
 import JobTypes from "@/components/Company/dashboard/Charts/JobTypes";
@@ -36,6 +37,8 @@ type JobTypeData = {
 
 export default function Dashboard() {
   const { companyName, companyId, loading: authLoading } = useAuth();
+  const searchParams = useSearchParams();
+  const paymentStatus = searchParams.get("payment");
   const [statistics, setStatistics] = useState<Statistics>({
     totalJobs: 0,
     totalActiveJobs: 0,
@@ -259,6 +262,12 @@ export default function Dashboard() {
 
   return (
     <div>
+      {paymentStatus === "success" && (
+        <div className="mb-6 p-4 bg-green-50 border border-green-300 text-green-800 rounded-lg flex items-center gap-2">
+          <span className="font-semibold">Payment successful!</span>
+          <span>Your subscription has been activated.</span>
+        </div>
+      )}
       <div className="text-3xl font-bold">Dashboard Overview</div>
       <div className="mt-2 text-gray-500">
         Welcome back, <span className="text-notice">{companyName} !</span>
